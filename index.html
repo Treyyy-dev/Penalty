@@ -573,7 +573,7 @@ h1,h2{font-family:'Creepster','Special Elite',serif;font-weight:400;margin:0;let
 
 <script>
 /* ================= AUTO-UPDATE ================= */
-const BUILD='20261122083905';
+const BUILD='20261122084144';
 function checkUpdate(){try{if(window.G&&!window.G.over)return}catch(e){}
  fetch(location.pathname+'?cb='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{const m=/const BUILD='(\d+)'/.exec(t);if(m&&m[1]>BUILD&&!(typeof G!=='undefined'&&G&&!G.over&&document.getElementById('game').classList.contains('on')))location.replace(location.pathname+'?v='+m[1])}).catch(()=>{})}
 checkUpdate();document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkUpdate()});setInterval(checkUpdate,120000);
@@ -955,6 +955,12 @@ function floorCast(W,H,hor,eh,dx,dy,px,py,S,M){const w=W>>1,hh=H>>1;if(!fcv||fcv
    fbuf[row+i]=0xff000000|((b>255?255:b)<<16)|((g>255?255:g)<<8)|(r>255?255:r)}}
  fctx.putImageData(fimg,0,0);ctx.imageSmoothingEnabled=false;ctx.drawImage(fcv,0,0,W,H);ctx.imageSmoothingEnabled=true}
 
+const BULIMG=mkImg('0 0 40 40',64,64,'<defs><radialGradient id="bg"><stop offset="0" stop-color="#fff"/><stop offset=".3" stop-color="#ffe9a0"/><stop offset=".6" stop-color="#ffb02e" stop-opacity=".7"/><stop offset="1" stop-color="#ff7a00" stop-opacity="0"/></radialGradient></defs><circle cx="20" cy="20" r="20" fill="url(#bg)"/>');
+// visible bullets: they only show the shot, damage is still decided the moment the gun fires
+function addBul(sx,sy,tx,ty){if(!G)return;const d=Math.hypot(tx-sx,ty-sy);if(d<.2)return;const b=G.bul=G.bul||[];b.push({x:sx,y:sy,vx:(tx-sx)/d*36,vy:(ty-sy)/d*36,life:d/36});if(b.length>80)b.shift()}
+function bulFrom(e,t){if(e&&t)addBul(e.x+(t.x-e.x)*.06,e.y+(t.y-e.y)*.06,t.x+(Math.random()-.5)*.3,t.y+(Math.random()-.5)*.3)}
+function stepBul(dt){if(!G.bul||!G.bul.length)return;G.bul=G.bul.filter(b=>{b.x+=b.vx*dt;b.y+=b.vy*dt;b.life-=dt;const c=cell(b.x,b.y,0);return b.life>0&&c!=='#'&&c!=='+'&&c!=='X'})}
+function netFoe(e){let best=null,bd=14;const mine=o=>o===P||G.team.includes(o),side=o=>mine(o)?'us':G.ffa?o:o.team;for(const o of [P,...G.team,...G.zs]){if(o===e||o.dead||o.dn||o.gone||o.state==='down'||side(o)===side(e))continue;const d=dist(e,o);if(d<bd&&los(e,o)){bd=d;best=o}}return best}
 const FBIMG=mkImg('0 0 40 40',120,120,KIND.fireball[3]);
 const ZIMG=[0,1,2].map(v=>[0,1,2].map(p=>mkImg('-4 40 208 752',166,600,zSvg(v,p))));
 function figImg(c,state,pose,blink,load){return state==='down'?mkImg('0 -204 792 208',420,110,`<g transform="rotate(-90)">${figIn(c,'hurt',0,false,load)}</g>`):mkImg('-4 0 208 792',176,670,figIn(c,state,pose||0,blink,load))}
@@ -1057,7 +1063,7 @@ const spawnOf=(s,ffa)=>ffa?[RLIST[s%RLIST.length].x+(s%2?.6:-.6),RLIST[s%RLIST.l
 // damage to anything another device controls is sent to its owner; returns true when it was applied here
 function dmgEnt(e,d){if(e.net&&NET.on){e.fl=.15;e.lastHit=G.tAcc;netSend(e.human?{t:'hit',to:e.slot,d:Math.round(d)}:{t:'bhit',s:e.slot,d:Math.round(d)});return false}soak(e,d);return true}
 function netLerp(e,dt){if(e.tx!=null){const k=Math.min(1,dt*10);e.x+=(e.tx-e.x)*k;e.y+=(e.ty-e.y)*k}e.mov=!!e.nmv;if(e.mov)e.ph=(e.ph||0)+dt*8}
-function netApply(e,x,y,hp,sh,st,mv,rl,mf){e.tx=x;e.ty=y;if(e.tx0==null||Math.hypot(x-e.x,y-e.y)>3){e.x=x;e.y=y;e.tx0=1}e.hp=hp;e.sh=sh;e.nmv=mv;e.rl=rl?1:0;if(mf)e.mf=.12;
+function netApply(e,x,y,hp,sh,st,mv,rl,mf){e.tx=x;e.ty=y;if(e.tx0==null||Math.hypot(x-e.x,y-e.y)>3){e.x=x;e.y=y;e.tx0=1}e.hp=hp;e.sh=sh;e.nmv=mv;e.rl=rl?1:0;if(mf){if(!(e.mf>0))bulFrom(e,netFoe(e));e.mf=.12}
  if(e.team){const was=e.dead||e.dn;if(st===2&&!e.dead){e.dead=9999;e.hp=0}e.dn=st===1;
   if(!was&&(e.dead||e.dn)&&e.lastHit!=null&&G.tAcc-e.lastHit<2.5){G.kills++;track('kills',1);sfx('get');feed(`You took down ${e.c.n.split(' ')[0]}!`)}}
  else{const s=st?'down':hp<50?'hurt':'ok';if(s!==e.state){e.state=s;updTeam()}}}
@@ -1178,7 +1184,7 @@ function hurtZ(z,dmg,kb){if(z.dead)return;z.fl=.15;track('dmg',Math.round(dmg));
 const onRet=(z,pad)=>{const s=z.scr,cx=cv.width/2,cy=cv.height*.47;pad*=cv.width/450;return !z.dead&&!z.dn&&s&&cx>=s.x0-pad&&cx<=s.x1+pad&&cy>=s.top&&cy<=s.bot};
 function aimZ(w){let b=null;for(const z of G.zs)if(onRet(z,0)&&(!b||z.scr.ty<b.scr.ty))b=z;return b}
 function autoFire(){if(G.hid||G.down)return;const g=G.guns[G.gi],w=g.w,tg=aimZ(w);G.lock=!!tg;if(!tg||g.reload>0||G.fcd>0)return;
- if(abOn('asher'))G.fcd=w.cd*.34;else{g.mag--;G.fcd=w.cd}reach=1.5;track('shots',1);sfx(w.cd>.4?'sgun':'gun');const f=$('flash');f.classList.remove('on');void f.offsetWidth;f.classList.add('on');const dm=w.dmg*(G.perk.dmg||1),crit=Math.random()<.12;
+ if(abOn('asher'))G.fcd=w.cd*.34;else{g.mag--;G.fcd=w.cd}reach=1.5;track('shots',1);sfx(w.cd>.4?'sgun':'gun');const f=$('flash');f.classList.remove('on');void f.offsetWidth;f.classList.add('on');const dm=w.dmg*(G.perk.dmg||1),crit=Math.random()<.12;{const ca=Math.cos(P.a),sa=Math.sin(P.a),sx=P.x+ca*.32-sa*.07,sy=P.y+sa*.32+ca*.07;addBul(sx,sy,tg.x,tg.y);if(w.spread)[-.16,-.08,.08,.16].forEach(o=>addBul(sx,sy,P.x+Math.cos(P.a+o)*7,P.y+Math.sin(P.a+o)*7));if(w.pierce)addBul(tg.x,tg.y,tg.x+ca*8,tg.y+sa*8)}
  if(w.spread)G.zs.forEach(z=>{if(onRet(z,50))hurtZ(z,z.scr.ty<3.5?dm:z.scr.ty<6?dm*.5:dm*.25,.5)});
  else if(w.pierce)G.zs.forEach(z=>{if(onRet(z,0))hurtZ(z,dm)});
  else{hurtZ(tg,crit?dm*2:dm);if(crit)track('heads',1);if(crit)say(tg.dead?'Headshot — they are down.':'Headshot — double damage.')}
@@ -1198,7 +1204,7 @@ function update(dt){G.tAcc=(G.tAcc||0)+(G.down?0:dt);
  if(G.hid){G.breath-=dt;$('breathI').style.width=Math.max(0,G.breath/G.bmax*100)+'%';if(G.breath<=0){leave();say('You can\'t hold your breath any longer. You stumble out.')}}
  if(G.down){G.bleed-=dt;$('bleedI').style.width=Math.max(0,G.bleed/30*100)+'%';if(G.bleed<=0||!G.team.some(t=>t.state!=='down')){G.down=false;end(false);return}}
  // rounds
- const alive=G.zs.filter(z=>!z.dead&&!z.dn).length;netTick(dt);if(G.frz>0){G.frz-=dt;joy.x=joy.y=0}
+ const alive=G.zs.filter(z=>!z.dead&&!z.dn).length;netTick(dt);stepBul(dt);if(G.frz>0){G.frz-=dt;joy.x=joy.y=0}
  if(G.inter>0){G.inter-=dt;joy.x=joy.y=0;{const n=Math.ceil(G.inter),e=$('cdn');if(n!==G.cdn){G.cdn=n;e.classList.remove('pop');void e.offsetWidth;e.textContent=n>0?n:'START';e.classList.toggle('go',n<=0);e.classList.add('on','pop');sfx(n>0?'tick':'rare');if(n<=0)setTimeout(()=>e.classList.remove('on','pop','go'),900)}}if(G.inter<=0)startRound();if(G._left){const q=G._left;G._left=null;q.forEach(x=>netMsg({t:'left',s:+x}))}}
  else if(alive===0)endRound();
  // doors
@@ -1209,7 +1215,7 @@ function update(dt){G.tAcc=(G.tAcc||0)+(G.down?0:dt);
   z.tt-=dt;if(z.tt<=0||!z.tg||gone(z.tg)){z.tt=1+Math.random();let b=null,bd=1e9;for(const s of sv){if(s.team===z.team||gone(s))continue;const d=dist(s,z);if(d<bd){bd=d;b=s}}z.tg=b}
   const t=z.tg;if(!t)continue;const d=dist(z,t),see=d<10&&los(z,t);if(t===P&&d<near)near=d;z.shoot-=dt;
   if(!see||d>4.5)npc(z,t.x,t.y,z.spd,dt);
-  if(see&&z.shoot<=0&&!(z.rl>0)){z.shoot=z.rate+Math.random()*.4;z.mf=.12;z.am=(z.am||10)-1;if(z.am<=0){z.rl=2.2;z.am=10}if(dist(z,P)<13)sfx('gun2');if(Math.random()<z.acc*(d>6?.7:1)){
+  if(see&&z.shoot<=0&&!(z.rl>0)){z.shoot=z.rate+Math.random()*.4;z.mf=.12;z.am=(z.am||10)-1;if(z.am<=0){z.rl=2.2;z.am=10}if(dist(z,P)<13)sfx('gun2');bulFrom(z,t);if(Math.random()<z.acc*(d>6?.7:1)){
     if(t===P){if(G.hid)leave();hit(z.dmg,'')}
     else if(t.team){t.fl=.15;if(dmgEnt(t,z.dmg)&&t.hp<=0){t.hp=0;t.dead=9999;if(G.ffa)feed(`${tname(z)} took down ${tname(t)}.`);else if(!G.zs.some(o=>!o.dead&&o.team===t.team))feed(`${TEAMS[t.team].n} was wiped out by ${TEAMS[z.team].n}.`)}}
     else if(dmgEnt(t,z.dmg)){if(t.hp>0){t.state=t.hp<50?'hurt':'ok'}else{t.hp=0;t.state='down';feed(`${first(t)} is DOWN in the ${roomOf(t).n}. Go stand by them to help!`)}updTeam()}}}}
@@ -1218,7 +1224,7 @@ function update(dt){G.tAcc=(G.tAcc||0)+(G.down?0:dt);
  G.team.forEach(t=>{t.mov=false;if(t.mf>0)t.mf-=dt;if(t.rl>0)t.rl-=dt;if(t.net&&NET.on){netLerp(t,dt);if(t.state==='down'&&!t.gone&&!G.down&&dist(P,t)<1.3){t.rev=(t.rev||0)+dt;if(t.rev>2){t.rev=0;track('revives',1);netSend(t.human?{t:'rev',to:t.slot}:{t:'brev',s:t.slot})}}else t.rev=0;return}if(t.state==='down'){if(t.f===P.f&&dist(P,t)<1.3&&!G.hid&&!G.down){if(!t.rev)say(`Helping ${first(t)} up — stay close...`);t.rev=(t.rev||0)+dt;if(t.rev>2){t.rev=0;t.hp=40;t.sh=50;t.state='hurt';t.mode='idle';t.t=1;sfx('get');track('revives',1);feed(`You pulled ${first(t)} back to their feet.`);updTeam()}}else{t.rev=0;if(t.f!==P.f||dist(P,t)>1.1)goTo(t,P,.4,dt)}return}
   recharge(t,dt);
   let nz=null,nd=1e9;for(const z of G.zs){if(z.dead||z.dn||z.gh)continue;const d=dist(z,t);if(d<nd){nd=d;nz=z}}
-  t.shoot-=dt;if(nz&&nd<10&&t.shoot<=0&&!(t.rl>0)&&los(t,nz)){t.shoot=.9+Math.random()*.5;t.am=(t.am||10)-1;if(t.am<=0){t.rl=2.2;t.am=10}if(t.f===P.f&&dist(t,P)<12)sfx('gun2');t.mf=.12;if(Math.random()<.5){nz.fl=.15;if(dmgEnt(nz,18)&&nz.hp<=0){nz.dead=9999;nz.hp=0;feed(`${first(t)} took down ${nz.c.n.split(' ')[0]} (${TEAMS[nz.team].n})!`)}}}
+  t.shoot-=dt;if(nz&&nd<10&&t.shoot<=0&&!(t.rl>0)&&los(t,nz)){t.shoot=.9+Math.random()*.5;t.am=(t.am||10)-1;if(t.am<=0){t.rl=2.2;t.am=10}if(t.f===P.f&&dist(t,P)<12)sfx('gun2');t.mf=.12;bulFrom(t,nz);if(Math.random()<.5){nz.fl=.15;if(dmgEnt(nz,18)&&nz.hp<=0){nz.dead=9999;nz.hp=0;feed(`${first(t)} took down ${nz.c.n.split(' ')[0]} (${TEAMS[nz.team].n})!`)}}}
   const spd=t.state==='hurt'?1.7:2.1;
   if(G.down){const dp=t.f===P.f?dist(t,P):99;if(dp>1)goTo(t,P,spd*1.25,dt);if(dp<1.4){G.revT+=dt;if(G.revT>2.5){G.down=false;G.hp=40;G.sh=50;G.rg=0;$('knock').classList.remove('on');sfx('get');feed(`${first(t)} got you back on your feet.`);drawHud()}}return}
   if(nz&&nd<5&&los(t,nz))return;
@@ -1248,6 +1254,7 @@ function render(t){const W=cv.width,H=cv.height,hor=Math.round(H*.47+Math.sin(P.
  G.zs.forEach(z=>{z.scr=null;if(z.f!==F)return;const it=t+z.seed;sp.push({z,x:z.x,y:z.y,img:(z.dead||z.dn)?z.img.down:z.rl>0?z.img.rl[Math.floor((t+z.seed)/380)%2]:z.img[z.hp<50?'hurt':'ok'][z.mov?[1,0,2,0][Math.floor(z.ph/1.5708)%4]:(it%3300<150?3:0)],hW:(z.dead||z.dn)?.27:.84,a:1,lift:z.mov?Math.abs(Math.sin(z.ph))*.025:0,ice:z.frz>0&&!z.dead,red:z.fl>0,mark:(z.dead||z.dn)?0:'#e6e6e6',mf:z.mf>0,bar:(z.dead||z.dn)?0:[z.sh/100,z.hp/100]})});
  G.team.forEach(tm=>{if(tm.f!==F)return;const dn=tm.state==='down',it=t+tm.seed;sp.push({x:tm.x+(dn?(tm.mov?Math.sin(t/160)*.03:0):tm.mov?Math.sin(tm.ph)*.015:0),y:tm.y,img:dn?tm.img.down:tm.rl>0?tm.img.rl[Math.floor(t/380)%2]:tm.img[tm.state][tm.mov?[1,0,2,0][Math.floor(tm.ph/1.5708)%4]:(it%3600<150?3:0)],hW:dn?.27:.84,a:1,lift:tm.mov?Math.abs(Math.sin(tm.ph))*.025:0,ring:dn,mark:dn?0:'#ffffff',tri:1,mf:tm.mf>0})});
  G.fb.forEach(b=>sp.push({x:b.x,y:b.y,img:FBIMG,hW:.34,a:1,lift:.34,lit:1}));
+ if(G.bul)G.bul.forEach(b=>sp.push({x:b.x,y:b.y,img:BULIMG,hW:.075,a:1,lift:.29,lit:1}));
  const inv=1/(px*dy-dx*py);sp.forEach(s=>{const rx=s.x-P.x,ry=s.y-P.y;s.tx=inv*(dy*rx-dx*ry);s.ty=inv*(-py*rx+px*ry)});sp.sort((a,b)=>b.ty-a.ty);
  sp.forEach(s=>{if(s.ty<.2||!s.img.ready)return;const scx=(W/2)*(1+s.tx/s.ty),sh=s.hW*S/s.ty,sw=sh*s.img.width/s.img.height,bot=hor+S*eh/s.ty-(s.lift||0)*S/s.ty,top=bot-sh,x0=scx-sw/2;
   ctx.globalAlpha=(s.lit?1:Math.max(.3,Math.min(1,Math.min(1,2.2/(.5+s.ty*.36))*(.34+lightAt(s.x,s.y)))))*s.a;const xa=Math.max(0,Math.floor(x0/2)*2),xb=Math.min(W,x0+sw),iw=s.img.width,stp=2/sw*iw;let vis=false;
