@@ -348,6 +348,27 @@ h1,h2{font-family:'Creepster','Special Elite',serif;font-weight:400;margin:0;let
 .card{background:linear-gradient(160deg,#77818f,#2a2f38)!important;box-shadow:none!important}
 .card .price{position:absolute;top:8px;right:8px;font-family:Arial,sans-serif;font-size:12px;font-weight:800;color:#9fe0ff;background:rgba(0,0,0,.78);border:1px solid #2c5a70;border-radius:5px;padding:3px 7px}
 #nav button{font-size:9.5px!important;letter-spacing:.8px!important}
+/* idles: only the eyes, head or arms move */
+.idle .bust,.idle .arms,.idle .fig,.idle .legR,.idle .legL,.idle .armL,.idle .armR{animation:none!important}
+.i0 .eyeb{animation:eLR 3.4s ease-in-out infinite}
+.i1 .head{animation:hTilt 4s ease-in-out infinite;transform-origin:100px 172px}
+.i2 .arms{animation:aAim 3.8s ease-in-out infinite!important}
+.i3 .eyeb{animation:eUD 4.2s ease-in-out infinite}
+.i4 .head{animation:hNod 1.3s ease-in-out infinite;transform-origin:100px 172px}
+.i5 .head{animation:hTurn 5s ease-in-out infinite}.i5 .eyeb{animation:eLR 5s ease-in-out infinite}
+.i6 .arms{animation:aSway 3.2s ease-in-out infinite!important;transform-origin:100px 300px}
+.i7 .eyeb{animation:eDart 2.8s ease-in-out infinite}
+.i8 .head{animation:hTilt 6.5s ease-in-out infinite;transform-origin:100px 172px}.i8 .eyeb{animation:eUD 3.3s ease-in-out infinite}
+.i9 .arms{animation:aLift 3.4s ease-in-out infinite!important}
+@keyframes eLR{0%,100%{transform:translateX(-2.8px)}50%{transform:translateX(2.8px)}}
+@keyframes eUD{0%,100%{transform:translateY(-2.2px)}50%{transform:translateY(2.4px)}}
+@keyframes eDart{0%,38%{transform:translateX(-3px)}44%,84%{transform:translateX(3px)}90%,100%{transform:translateX(-3px)}}
+@keyframes hTilt{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(6deg)}}
+@keyframes hNod{0%,100%{transform:rotate(0)}50%{transform:rotate(4deg) translateY(3px)}}
+@keyframes hTurn{0%,100%{transform:translateX(-6px)}50%{transform:translateX(6px)}}
+@keyframes aAim{0%,45%,100%{transform:translateY(0)}60%,88%{transform:translateY(-42px)}}
+@keyframes aSway{0%,100%{transform:rotate(-9deg)}50%{transform:rotate(9deg)}}
+@keyframes aLift{0%,55%,100%{transform:translateY(0)}68%{transform:translateY(-18px)}82%{transform:translateY(3px)}}
 </style>
 </head>
 <body>
@@ -442,7 +463,7 @@ h1,h2{font-family:'Creepster','Special Elite',serif;font-weight:400;margin:0;let
 
 <script>
 /* ================= AUTO-UPDATE ================= */
-const BUILD='20261122064436';
+const BUILD='20261122064728';
 function checkUpdate(){try{if(window.G&&!window.G.over)return}catch(e){}
  fetch(location.pathname+'?cb='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{const m=/const BUILD='(\d+)'/.exec(t);if(m&&m[1]>BUILD&&!(typeof G!=='undefined'&&G&&!G.over&&document.getElementById('game').classList.contains('on')))location.replace(location.pathname+'?v='+m[1])}).catch(()=>{})}
 checkUpdate();document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkUpdate()});setInterval(checkUpdate,120000);
@@ -496,7 +517,7 @@ function art(c,bust,blink){
    pony:`<path d="${cap}" fill="${hd}"/><path d="M138,56 C192,44 196,146 170,212 C162,166 152,124 136,98Z" fill="${hc}"/><path d="M166,90 C176,130 172,170 168,196" stroke="${hl}" stroke-width="2" fill="none" opacity=".6"/><circle cx="142" cy="62" r="6" fill="${ac}"/>`,
    buns:`<path d="${cap}" fill="${hd}"/><circle cx="58" cy="50" r="20" fill="${hc}"/><circle cx="142" cy="50" r="20" fill="${hc}"/><circle cx="52" cy="44" r="6" fill="${hl}" opacity=".35"/><circle cx="136" cy="44" r="6" fill="${hl}" opacity=".35"/>`
   };
-  s+=BH[c.hb];
+  s+=`<g class="head">`+BH[c.hb]+'</g>';
   // body
   if(c.fit==='hoodie')s+=`<ellipse cx="100" cy="184" rx="48" ry="24" fill="${fd}"/>`;
   s+=`<rect x="87" y="148" width="26" height="46" fill="${skd}"/><path d="M87,160 Q100,172 113,160 L113,150 L87,150Z" fill="#000" opacity=".25"/>`;
@@ -512,11 +533,11 @@ function art(c,bust,blink){
   };
   s+=FIT[c.fit];
   // head
-  s+=`<ellipse cx="57" cy="113" rx="6" ry="10" fill="${skd}"/><ellipse cx="143" cy="113" rx="6" ry="10" fill="${skd}"/><path d="${F}" fill="${sk}"/><path d="${F}" fill="url(#${u}s)"/>`;
+  s+=`<g class="head"><ellipse cx="57" cy="113" rx="6" ry="10" fill="${skd}"/><ellipse cx="143" cy="113" rx="6" ry="10" fill="${skd}"/><path d="${F}" fill="${sk}"/><path d="${F}" fill="url(#${u}s)"/>`;
   if(c.g==='f')s+=`<ellipse cx="74" cy="130" rx="8" ry="4" fill="#e66" opacity=".22"/><ellipse cx="126" cy="130" rx="8" ry="4" fill="#e66" opacity=".22"/>`;
   // eyes
   const ry=c.g==='f'?10.5:8,ey=113;
-  const eye=(x,col)=>`${c.glow?`<circle cx="${x}" cy="${ey}" r="15" fill="${col}" opacity=".28"/>`:''}<ellipse cx="${x}" cy="${ey}" rx="10" ry="${ry}" fill="#f7f4ee"/><ellipse cx="${x}" cy="${ey+.5}" rx="6.8" ry="${Math.min(ry,7.8)}" fill="${col}"/><ellipse cx="${x}" cy="${ey+2}" rx="5" ry="${Math.min(ry,6)-1}" fill="${shade(col,.6)}" opacity=".7"/><circle cx="${x}" cy="${ey+.5}" r="3" fill="#07070a"/><circle cx="${x-2.6}" cy="${ey-3}" r="2.2" fill="#fff"/><circle cx="${x+2.5}" cy="${ey+3}" r="1" fill="#fff" opacity=".8"/><path d="M${x-11},${ey-3} Q${x},${ey-ry-5} ${x+11},${ey-3}" stroke="#141018" stroke-width="${c.g==='f'?3:2.4}" fill="none" stroke-linecap="round"/>${c.g==='f'?`<path d="M${x<100?x-11:x+11},${ey-3} l${x<100?-4:4},-4" stroke="#141018" stroke-width="2" stroke-linecap="round"/>`:''}<path d="M${x-8},${ey+ry+2} Q${x},${ey+ry+5} ${x+8},${ey+ry+2}" stroke="#402" stroke-width="1.5" fill="none" opacity=".3"/>`;
+  const eye=(x,col)=>`${c.glow?`<circle cx="${x}" cy="${ey}" r="15" fill="${col}" opacity=".28"/>`:''}<ellipse cx="${x}" cy="${ey}" rx="10" ry="${ry}" fill="#f7f4ee"/><g class="eyeb"><ellipse cx="${x}" cy="${ey+.5}" rx="6.8" ry="${Math.min(ry,7.8)}" fill="${col}"/><ellipse cx="${x}" cy="${ey+2}" rx="5" ry="${Math.min(ry,6)-1}" fill="${shade(col,.6)}" opacity=".7"/><circle cx="${x}" cy="${ey+.5}" r="3" fill="#07070a"/><circle cx="${x-2.6}" cy="${ey-3}" r="2.2" fill="#fff"/><circle cx="${x+2.5}" cy="${ey+3}" r="1" fill="#fff" opacity=".8"/></g><path d="M${x-11},${ey-3} Q${x},${ey-ry-5} ${x+11},${ey-3}" stroke="#141018" stroke-width="${c.g==='f'?3:2.4}" fill="none" stroke-linecap="round"/>${c.g==='f'?`<path d="M${x<100?x-11:x+11},${ey-3} l${x<100?-4:4},-4" stroke="#141018" stroke-width="2" stroke-linecap="round"/>`:''}<path d="M${x-8},${ey+ry+2} Q${x},${ey+ry+5} ${x+8},${ey+ry+2}" stroke="#402" stroke-width="1.5" fill="none" opacity=".3"/>`;
   s+=eye(81,c.eye)+eye(119,c.eye2||c.eye);
   s+=`<g class="blink" opacity="${blink?1:0}">`+[81,119].map(x=>`<ellipse cx="${x}" cy="${ey}" rx="12" ry="${ry+2.5}" fill="${sk}"/><path d="M${x-10},${ey+2} Q${x},${ey+7} ${x+10},${ey+2}" stroke="#141018" stroke-width="2.6" fill="none" stroke-linecap="round"/>`).join('')+'</g>';
   s+=`<path d="M70,97 L92,92 M108,92 L130,97" stroke="${shade(hc,.55)}" stroke-width="3" stroke-linecap="round"/><path d="M100,126 l-2.5,7 l4,0" stroke="${shade(sk,.62)}" stroke-width="1.6" fill="none" stroke-linecap="round"/>`;
@@ -545,7 +566,7 @@ function art(c,bust,blink){
    scar:`<path d="M112,96 L126,132" stroke="#a04848" stroke-width="2" stroke-linecap="round"/><path d="M114,104 l6,-2 M118,114 l6,-2 M121,123 l6,-2" stroke="#a04848" stroke-width="1.2"/>`,
    scarf:`<path d="M64,198 C76,170 124,170 136,198 C122,214 78,214 64,198Z" fill="${ac}"/><path d="M112,204 L128,262 L106,262 L102,208Z" fill="${shade(ac,.8)}"/><path d="M72,194 Q100,206 128,194" stroke="${shade(ac,.6)}" stroke-width="2" fill="none"/>`
   };
-  (c.acc||[]).forEach(a=>s+=A[a]);
+  (c.acc||[]).forEach(a=>{if(a!=='choker'&&a!=='scarf')s+=A[a]});s+='</g>';(c.acc||[]).forEach(a=>{if(a==='choker'||a==='scarf')s+=A[a]});
   s+=bust?'</g>':`<rect width="200" height="260" fill="url(#${u}v)"/></g></svg>`;
   return s;
 }
@@ -836,13 +857,13 @@ function figIn(c,state,pose,blink,load){load=load||{hand:'pistol'};const hw=wpn(
  // the exact portrait drawing: head, hair, face, shoulders
  s+=art(c,true,blink);
  // gun raised and aimed, both hands on it
- const bob=pose===1?-4:pose===2?4:0,arm=d=>`<path d="${d}" stroke="${fd}" stroke-width="36" fill="none" stroke-linejoin="round" stroke-linecap="round"/>`,hand=(x,y)=>`<circle cx="${x}" cy="${y}" r="17" fill="${sk}" stroke="${shade(sk,.7)}" stroke-width="2"/>`;
+ const bob=pose===1?-4:pose===2?4:0,arm=d=>`<path d="${d}" stroke="${fd}" stroke-width="36" fill="none" stroke-linejoin="round" stroke-linecap="round"/>`,hand=(x,y,r)=>{const sd=shade(sk,.68);return `<g transform="translate(${x},${y}) rotate(${r||0})"><ellipse cx="-16" cy="-4" rx="6" ry="11" transform="rotate(-38 -16 -4)" fill="${sk}" stroke="${sd}" stroke-width="1.6"/><circle r="15" fill="${sk}" stroke="${sd}" stroke-width="2"/>`+[-10.5,-3.5,3.5,10.5].map((fx,q)=>`<rect x="${fx-3.6}" y="${-20+(q===0||q===3?2.5:0)}" width="7.2" height="17" rx="3.6" fill="${sk}" stroke="${sd}" stroke-width="1.5"/>`).join('')+`<path d="M-12,-6 Q0,-10 12,-6" stroke="${sd}" stroke-width="1.5" fill="none"/></g>`};
  if(pose>=3){const up=pose===4,lx=up?(hw.long?98:114):42,ly=up?(hw.long?398:356):466;
-  s+=`<g class="arms">`+arm(`M42,258 L${up?26:34},${up?346:362} L${lx},${ly}`)+(hw.long?arm('M158,258 L182,348 L130,356')+`<g transform="translate(92,375) rotate(115) scale(1.25,-1.25)">${WSHAPE[hw.id]}</g>`+hand(128,356)
-   :arm('M158,258 L162,332 L126,320')+`<g transform="rotate(-14 124 300)"><rect x="110" y="270" width="28" height="46" rx="5" fill="#30343b" stroke="#0a0a0c" stroke-width="2"/><circle cx="124" cy="284" r="6.5" fill="#050506"/></g>`+hand(126,324))
-   +`<rect x="${lx-9}" y="${ly-40}" width="18" height="36" rx="3" fill="#16171b" stroke="#0a0a0c" stroke-width="2"/><rect x="${lx-6}" y="${ly-40}" width="12" height="6" fill="#e8c04a"/>`+hand(lx,ly)+'</g>'}
- else s+=`<g class="arms" transform="translate(0,${bob})">`+(hw.long?arm('M42,258 L16,306 L38,238')+arm('M158,258 L176,322 L130,304')+`<g transform="translate(111,272) rotate(201) scale(1,-1)">${WSHAPE[hw.id]}</g>`+hand(40,234)+hand(128,302)
-  :arm('M42,258 L46,332 L90,322')+arm('M158,258 L154,332 L110,322')+(hw.id==='revolver'?`<ellipse cx="100" cy="300" rx="19" ry="16" fill="#8a8f98" stroke="#0a0a0c" stroke-width="2"/><rect x="90" y="270" width="20" height="26" rx="5" fill="#6d727b" stroke="#0a0a0c" stroke-width="2"/><circle cx="100" cy="282" r="6" fill="#050506"/>`:`<rect x="86" y="272" width="28" height="44" rx="5" fill="#30343b" stroke="#0a0a0c" stroke-width="2"/><circle cx="100" cy="286" r="6.5" fill="#050506"/><rect x="96" y="264" width="8" height="9" fill="#0a0a0c"/>`)+hand(90,324)+hand(110,324))+'</g>';
+  s+=`<g class="arms">`+arm(`M42,258 L${up?26:34},${up?346:362} L${lx},${ly}`)+(hw.long?arm('M158,258 L182,348 L130,356')+`<g transform="translate(92,375) rotate(115) scale(1.25,-1.25)">${WSHAPE[hw.id]}</g>`+hand(128,356,-150)
+   :arm('M158,258 L162,332 L126,320')+`<g transform="rotate(-14 124 300)"><rect x="110" y="270" width="28" height="46" rx="5" fill="#30343b" stroke="#0a0a0c" stroke-width="2"/><circle cx="124" cy="284" r="6.5" fill="#050506"/></g>`+hand(126,324,-20))
+   +`<rect x="${lx-9}" y="${ly-40}" width="18" height="36" rx="3" fill="#16171b" stroke="#0a0a0c" stroke-width="2"/><rect x="${lx-6}" y="${ly-40}" width="12" height="6" fill="#e8c04a"/>`+hand(lx,ly,up?0:180)+'</g>'}
+ else s+=`<g class="arms" transform="translate(0,${bob})">`+(hw.long?arm('M42,258 L16,306 L38,238')+arm('M158,258 L176,322 L130,304')+`<g transform="translate(111,272) rotate(201) scale(1,-1)">${WSHAPE[hw.id]}</g>`+hand(40,234,150)+hand(128,302,-160)
+  :arm('M42,258 L46,332 L90,322')+arm('M158,258 L154,332 L110,322')+(hw.id==='revolver'?`<ellipse cx="100" cy="300" rx="19" ry="16" fill="#8a8f98" stroke="#0a0a0c" stroke-width="2"/><rect x="90" y="270" width="20" height="26" rx="5" fill="#6d727b" stroke="#0a0a0c" stroke-width="2"/><circle cx="100" cy="282" r="6" fill="#050506"/>`:`<rect x="86" y="272" width="28" height="44" rx="5" fill="#30343b" stroke="#0a0a0c" stroke-width="2"/><circle cx="100" cy="286" r="6.5" fill="#050506"/><rect x="96" y="264" width="8" height="9" fill="#0a0a0c"/>`)+hand(90,324,20)+hand(110,324,-20))+'</g>';
  if(state!=='ok')s+=`<path d="M70,290 l42,56 M112,286 l-36,62" stroke="#b01018" stroke-width="11" stroke-linecap="round"/><path d="M84,348 q8,36 0,64" stroke="#7a0b10" stroke-width="8" fill="none" stroke-linecap="round"/>`;
  return s+'</g></g>'}
 
@@ -870,11 +891,11 @@ function drawHands(c,wid){const sk=c.skin,sd=shade(sk,.72),fc=c.fc,fd=shade(fc,.
  let s='<g id="handL"></g><g id="handR">';
  if(!w.long){s+=`<path d="M346,214 L262,214 L200,156 L230,124Z" fill="${fc}"/><path d="M230,124 L200,156 L210,164 L242,133Z" fill="${fd}"/>`+mag+fpGun(w.id);
   s+=`<ellipse cx="206" cy="150" rx="34" ry="29" fill="${sk}" stroke="${sd}" stroke-width="1.5"/><ellipse cx="219" cy="118" rx="9" ry="19" transform="rotate(-10 219 118)" fill="${sk}" stroke="${sd}" stroke-width="1.5"/>`;
-  s+=`<g id="fpL"><path d="M14,214 L98,214 L182,156 L152,124Z" fill="${fc}"/><path d="M152,124 L182,156 L172,164 L140,133Z" fill="${fd}"/><ellipse cx="176" cy="152" rx="35" ry="30" fill="${sk}" stroke="${sd}" stroke-width="1.5"/>${lines(178,150,-4)}<ellipse cx="163" cy="116" rx="9" ry="21" transform="rotate(10 163 116)" fill="${sk}" stroke="${sd}" stroke-width="1.5"/></g><g id="fpL2"></g>`}
+  s+=`<g id="fpL"><path d="M14,214 L98,214 L182,156 L152,124Z" fill="${fc}"/><path d="M152,124 L182,156 L172,164 L140,133Z" fill="${fd}"/><ellipse cx="176" cy="152" rx="35" ry="30" fill="${sk}" stroke="${sd}" stroke-width="1.5"/>${lines(178,150,-4)}<ellipse cx="163" cy="116" rx="9" ry="21" transform="rotate(10 163 116)" fill="${sk}" stroke="${sd}" stroke-width="1.5"/>`+[0,1,2,3].map(i=>`<ellipse cx="${206-i*1.5}" cy="${133+i*9.5}" rx="11" ry="5.4" fill="${sk}" stroke="${sd}" stroke-width="1.3"/>`).join('')+`</g><g id="fpL2"></g>`}
  else{const ly=w.id==='smg'?126:w.id==='sniper'?104:96,lx=194+.349*(ly-44);
   s+=`<g id="fpL"><path d="M0,214 L82,214 L${lx+6},${ly+22} L${lx-22},${ly-6}Z" fill="${fc}"/><path d="M${lx-22},${ly-6} L${lx+6},${ly+22} L${lx-2},${ly+30} L${lx-32},${ly+2}Z" fill="${fd}"/><ellipse cx="${lx-8}" cy="${ly+4}" rx="27" ry="21" transform="rotate(-25 ${lx-8} ${ly+4})" fill="${sk}" stroke="${sd}" stroke-width="1.5"/></g>`+mag+fpGun(w.id);
   s+=`<g id="fpL2">`+[0,1,2,3].map(i=>`<ellipse cx="${lx+8+i*2.4}" cy="${ly-9+i*8}" rx="8" ry="5" transform="rotate(-25 ${lx+8+i*2.4} ${ly-9+i*8})" fill="${sk}" stroke="${sd}" stroke-width="1.2"/>`).join('')+`<ellipse cx="${lx-20}" cy="${ly-14}" rx="8" ry="15" transform="rotate(20 ${lx-20} ${ly-14})" fill="${sk}" stroke="${sd}" stroke-width="1.5"/></g>`;
-  s+=`<path d="M360,214 L292,214 L250,178 L284,150Z" fill="${fc}"/><path d="M284,150 L250,178 L258,186 L294,158Z" fill="${fd}"/><ellipse cx="262" cy="176" rx="31" ry="26" fill="${sk}" stroke="${sd}" stroke-width="1.5"/>${lines(260,176,18)}<ellipse cx="236" cy="158" rx="8" ry="17" transform="rotate(-38 236 158)" fill="${sk}" stroke="${sd}" stroke-width="1.5"/>`}
+  s+=`<path d="M360,214 L292,214 L250,178 L284,150Z" fill="${fc}"/><path d="M284,150 L250,178 L258,186 L294,158Z" fill="${fd}"/><ellipse cx="262" cy="176" rx="31" ry="26" fill="${sk}" stroke="${sd}" stroke-width="1.5"/>${lines(260,176,18)}<ellipse cx="236" cy="158" rx="8" ry="17" transform="rotate(-38 236 158)" fill="${sk}" stroke="${sd}" stroke-width="1.5"/>`+[0,1,2].map(i=>`<ellipse cx="${240+i*3}" cy="${176+i*9}" rx="10" ry="5" transform="rotate(18 ${240+i*3} ${176+i*9})" fill="${sk}" stroke="${sd}" stroke-width="1.3"/>`).join('')}
  $('hands').innerHTML=s+'</g>'}
 
 /* ================= ABILITIES ================= */
@@ -1044,7 +1065,7 @@ function render(t){const W=cv.width,H=cv.height,hor=Math.round(H*.47+Math.sin(P.
   else{ctx.fillStyle=rgb((ROOMS[from]||ROOMS.h).w,L);ctx.fillRect(x,top,2,h)}}
  const sp=[];OBJ.forEach(o=>{if(o.f===F)sp.push({x:o.x,y:o.y,img:o.img,hW:o.hW,a:1,lift:o.lift,lit:o.lamp})});
  G.zs.forEach(z=>{z.scr=null;if(z.f!==F)return;const it=t+z.seed;sp.push({z,x:z.x,y:z.y,img:z.dead?z.img.down:z.rl>0?z.img.rl[Math.floor((t+z.seed)/380)%2]:z.img[z.hp<50?'hurt':'ok'][z.mov?[1,0,2,0][Math.floor(z.ph/1.5708)%4]:(it%3300<150?3:0)],hW:z.dead?.27:.84,a:1,lift:z.mov?Math.abs(Math.sin(z.ph))*.025:0,ice:z.frz>0&&!z.dead,red:z.fl>0,mark:z.dead?0:TEAMS[z.team].col,mf:z.mf>0,bar:z.dead?0:[z.sh/100,z.hp/100]})});
- G.team.forEach(tm=>{if(tm.f!==F)return;const dn=tm.state==='down',it=t+tm.seed;sp.push({x:tm.x+(dn?(tm.mov?Math.sin(t/160)*.03:0):tm.mov?Math.sin(tm.ph)*.015:Math.sin(it/1100)*.012),y:tm.y,img:dn?tm.img.down:tm.rl>0?tm.img.rl[Math.floor(t/380)%2]:tm.img[tm.state][tm.mov?[1,0,2,0][Math.floor(tm.ph/1.5708)%4]:(it%3600<150?3:0)],hW:dn?.27:tm.mov?.84:.84*(1+Math.sin(it/650)*.014),a:1,lift:tm.mov?Math.abs(Math.sin(tm.ph))*.025:0,ring:dn,mark:dn?0:'#ffffff',tri:1,mf:tm.mf>0})});
+ G.team.forEach(tm=>{if(tm.f!==F)return;const dn=tm.state==='down',it=t+tm.seed;sp.push({x:tm.x+(dn?(tm.mov?Math.sin(t/160)*.03:0):tm.mov?Math.sin(tm.ph)*.015:0),y:tm.y,img:dn?tm.img.down:tm.rl>0?tm.img.rl[Math.floor(t/380)%2]:tm.img[tm.state][tm.mov?[1,0,2,0][Math.floor(tm.ph/1.5708)%4]:(it%3600<150?3:0)],hW:dn?.27:.84,a:1,lift:tm.mov?Math.abs(Math.sin(tm.ph))*.025:0,ring:dn,mark:dn?0:'#ffffff',tri:1,mf:tm.mf>0})});
  G.fb.forEach(b=>sp.push({x:b.x,y:b.y,img:FBIMG,hW:.34,a:1,lift:.34,lit:1}));
  const inv=1/(px*dy-dx*py);sp.forEach(s=>{const rx=s.x-P.x,ry=s.y-P.y;s.tx=inv*(dy*rx-dx*ry);s.ty=inv*(-py*rx+px*ry)});sp.sort((a,b)=>b.ty-a.ty);
  sp.forEach(s=>{if(s.ty<.2||!s.img.ready)return;const scx=(W/2)*(1+s.tx/s.ty),sh=s.hW*S/s.ty,sw=sh*s.img.width/s.img.height,bot=hor+S*eh/s.ty-(s.lift||0)*S/s.ty,top=bot-sh,x0=scx-sw/2;
