@@ -439,6 +439,7 @@ h1,h2{font-family:'Creepster','Special Elite',serif;font-weight:400;margin:0;let
     <div class="srow"><span>FPS</span><div class="seg" id="sFps"><button data-v="30">30</button><button data-v="60">60</button><button data-v="120">120</button></div></div>
     <div class="srow"><span>Quality</span><div class="seg" id="sQ"><button data-v="low">LOW</button><button data-v="med">MEDIUM</button><button data-v="high">HIGH</button></div></div>
     <div class="srow"><span>Motion blur</span><button class="sbtn" id="sMb">OFF</button></div>
+    <div class="srow"><span>Version <b id="sVer" style="color:#9fe0ff;font-weight:400"></b></span><button class="sbtn" id="sUpd">UPDATE</button></div>
     <div class="srow"><span>Reset all progress</span><button class="sbtn" id="sReset">RESET</button></div>
     <p class="sub" style="padding:14px 2px">Resetting removes your souls and every survivor except Eli.</p>
   </div>
@@ -463,7 +464,7 @@ h1,h2{font-family:'Creepster','Special Elite',serif;font-weight:400;margin:0;let
 
 <script>
 /* ================= AUTO-UPDATE ================= */
-const BUILD='20261122064728';
+const BUILD='20261122065111';
 function checkUpdate(){try{if(window.G&&!window.G.over)return}catch(e){}
  fetch(location.pathname+'?cb='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{const m=/const BUILD='(\d+)'/.exec(t);if(m&&m[1]>BUILD&&!(typeof G!=='undefined'&&G&&!G.over&&document.getElementById('game').classList.contains('on')))location.replace(location.pathname+'?v='+m[1])}).catch(()=>{})}
 checkUpdate();document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkUpdate()});setInterval(checkUpdate,120000);
@@ -695,6 +696,7 @@ $('bMute').onclick=()=>setMute(!muted);$('sSound').onclick=()=>{initAudio();setM
 {let arm=0;$('sReset').onclick=()=>{if(!arm){arm=1;$('sReset').textContent='TAP AGAIN';setTimeout(()=>{arm=0;$('sReset').textContent='RESET'},3000)}else{arm=0;S.souls=300;S.owned={eli:1};S.active='eli';S.wp={pistol:1,rifle:1};S.eq={g1:'pistol',g2:'rifle'};save();$('sReset').textContent='DONE'}}}
 if(S.muted){muted=true;$('bMute').style.opacity=.4}
 S.fps=S.fps||60;S.q=S.q||'med';
+$('sVer').textContent=BUILD.slice(4,6)+'/'+BUILD.slice(6,8)+' '+BUILD.slice(8,10)+':'+BUILD.slice(10,12);$('sUpd').onclick=()=>{$('sUpd').textContent='LOADING';location.replace(location.pathname+'?v='+Date.now())};
 function drawSet(){document.querySelectorAll('#sFps button').forEach(b=>b.classList.toggle('on',+b.dataset.v===S.fps));document.querySelectorAll('#sQ button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.q));$('sMb').textContent=S.mb?'ON':'OFF'}
 $('sFps').onclick=e=>{const v=e.target.dataset.v;if(v){S.fps=+v;save();tick();drawSet()}};$('sQ').onclick=e=>{const v=e.target.dataset.v;if(v){S.q=v;save();tick();drawSet()}};$('sMb').onclick=()=>{S.mb=!S.mb;save();tick();drawSet()};drawSet();
 
