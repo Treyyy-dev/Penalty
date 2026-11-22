@@ -134,7 +134,7 @@ const waiting = new Map();       // NAME -> messages sent while they were offlin
 const cleanName = n => String(n || '').toUpperCase().replace(/[^A-Z0-9 _-]/g, '').trim().slice(0, 14);
 const isOn = n => { const s = byName.get(n); return !!(s && s.size); };
 function hello(c, msg) {
-  socialDrop(c);
+  unname(c);
   const n = cleanName(msg.name); if (!n) return;
   c.name = n; c.uid = String(msg.uid || '').slice(0, 16);
   if (!byName.has(n)) byName.set(n, new Set());
@@ -144,6 +144,10 @@ function hello(c, msg) {
   if (q) { waiting.delete(n); for (const m of q) send(c, m); }
 }
 function socialDrop(c) {
+  partyLeave(c);
+  unname(c);
+}
+function unname(c) {
   if (!c.name) return;
   const s = byName.get(c.name);
   if (s) { s.delete(c); if (!s.size) byName.delete(c.name); }
@@ -168,6 +172,57 @@ function dm(c, msg) {
   const q = waiting.get(to) || []; q.push(out); if (q.length > 30) q.shift(); waiting.set(to, q);
 }
 
+/* ---------- parties: up to three friends who queue together ---------- */
+const parties = new Map(); let nextParty = 1;
+const LOOK = ['ch', 'sk', 'camo', 'g1', 'g2', 'ic', 'bd', 'bn', 'st', 'md'];
+function pState(p) {
+  const out = { t: 'party', pid: p.id, leader: p.leader.name, members: p.members.map(m => ({ name: m.name, look: m.look || {} })) };
+  for (const m of p.members) send(m, out);
+}
+function partyLeave(c) {
+  const p = c.party; if (!p) return;
+  c.party = null; p.members = p.members.filter(m => m !== c);
+  if (!c.closed) send(c, { t: 'party', pid: 0 });
+  if (p.members.length <= 1) { for (const m of p.members) { m.party = null; send(m, { t: 'party', pid: 0 }); } parties.delete(p.id); return; }
+  if (p.leader === c) p.leader = p.members[0];
+  pState(p);
+}
+function party(c, t, msg) {
+  if (!c.name) return send(c, { t: 'pnote', text: 'Not connected yet. Try again in a moment.' });
+  const p = c.party;
+  if (t === 'plook') {
+    const l = {}; if (msg.look && typeof msg.look === 'object') for (const k of LOOK) { const v = String(msg.look[k] || ''); if (/^[a-z0-9_]{0,24}$/.test(v)) l[k] = v; }
+    c.look = l; if (p) pState(p); return;
+  }
+  if (t === 'pinv') {
+    const now = Date.now(); c.pinvs = (c.pinvs || []).filter(x => now - x < 10000); if (c.pinvs.length >= 6) return; c.pinvs.push(now);
+    const to = cleanName(msg.to), s = byName.get(to);
+    if (!to || to === c.name) return;
+    if (!s || !s.size) return send(c, { t: 'pnote', text: to + ' is not online.' });
+    if (p && p.leader !== c) return send(c, { t: 'pnote', text: 'Only the party leader can invite.' });
+    if (p && p.members.length >= 3) return send(c, { t: 'pnote', text: 'Your party is full.' });
+    let q = p;
+    if (!q) { q = { id: nextParty++, leader: c, members: [c], inv: new Set() }; parties.set(q.id, q); c.party = q; }
+    if (q.members.some(m => m.name === to)) return send(c, { t: 'pnote', text: to + ' is already in your party.' });
+    q.inv.add(to);
+    for (const x of s) send(x, { t: 'pinv', from: c.name, pid: q.id });
+    return send(c, { t: 'pnote', text: 'Invite sent to ' + to + '.' });
+  }
+  if (t === 'pacc') {
+    const q = parties.get(msg.pid);
+    if (!q || !q.inv.has(c.name)) return send(c, { t: 'pnote', text: 'That invite has expired.' });
+    if (q === p) return;
+    if (q.members.length >= 3) return send(c, { t: 'pnote', text: 'That party is full.' });
+    partyLeave(c); q.inv.delete(c.name); q.members.push(c); c.party = q; return pState(q);
+  }
+  if (t === 'pdec') { const q = parties.get(msg.pid); if (q && q.inv.delete(c.name)) send(q.leader, { t: 'pnote', text: c.name + ' declined your invite.' }); return; }
+  if (t === 'pleave') return partyLeave(c);
+  if (!p) return;
+  // the leader starts matchmaking for everyone; anyone can call it off
+  if (t === 'pgo' && p.leader === c) { const mode = MODES.includes(msg.mode) ? msg.mode : 'team'; for (const m of p.members) send(m, { t: 'pgo', mode, pid: p.id, n: p.members.length }); return; }
+  if (t === 'pcan') { for (const m of p.members) send(m, { t: 'pcan', by: c.name }); }
+}
+
 /* ---------- rooms ---------- */
 const rooms = new Map();
 let nextRoom = 1;
@@ -185,28 +240,52 @@ function join(c, msg) {
   c.camo = okId(msg.camo) || /^[a-z0-9_]{2,24}$/.test(msg.camo || '') ? String(msg.camo) : '';
   c.skins = {};
   if (msg.skins && typeof msg.skins === 'object') for (const k of Object.keys(msg.skins).slice(0, 30)) if (okId(k) && /^[a-z0-9_]{2,24}$/.test(String(msg.skins[k]))) c.skins[k] = String(msg.skins[k]);
+  c.pid = Number.isInteger(msg.pid) && msg.pid > 0 ? msg.pid : 0;
+  c.pn = c.pid ? Math.min(3, Math.max(1, msg.pn | 0)) : 1;
   let r = null;
-  for (const x of rooms.values()) if (x.mode === mode && x.state === 'wait' && x.members.length < CAP) { r = x; break; }
+  if (c.pid) for (const x of rooms.values()) if (x.mode === mode && x.state === 'wait' && x.members.some(m => m.pid === c.pid)) { r = x; break; }
+  if (!r) for (const x of rooms.values()) if (x.mode === mode && x.state === 'wait' && pack(groupsOf(x, c), x.mode.includes('ffa'))) { r = x; break; }
   if (!r) {
     r = { id: nextRoom++, mode, state: 'wait', members: [], host: null, startAt: Date.now() + WAIT_MS, timer: null };
     r.timer = setTimeout(() => startRoom(r), WAIT_MS);
     rooms.set(r.id, r);
   }
   c.room = r; r.members.push(c);
-  if (r.members.length >= CAP) { clearTimeout(r.timer); startRoom(r); } else lobby(r);
+  if (used(r) >= CAP) { clearTimeout(r.timer); startRoom(r); } else lobby(r);
 }
 
+// a party counts as its full size from the moment its first member arrives
+function groupsOf(r, extra) {
+  const g = new Map(), list = extra ? [...r.members, extra] : r.members;
+  for (const m of list) { const k = m.pid ? 'p' + m.pid : 'c' + m.id; if (!g.has(k)) g.set(k, { size: m.pid ? m.pn : 1, members: [] }); g.get(k).members.push(m); }
+  return [...g.values()];
+}
+const used = r => groupsOf(r).reduce((a, g) => a + g.size, 0);
+// slots 0-11; in team modes slots 3t..3t+2 are team t, and each party must fit inside one team
+function pack(groups, ffa) {
+  if (groups.reduce((a, g) => a + g.size, 0) > CAP) return null;
+  const at = new Map();
+  if (ffa) { let s = 0; for (const g of groups) { at.set(g, s); s += g.size; } return at; }
+  const free = [3, 3, 3, 3];
+  for (const g of [...groups].sort((a, b) => b.size - a.size)) { const t = free.findIndex(n => n >= g.size); if (t < 0) return null; at.set(g, t * 3 + 3 - free[t]); free[t] -= g.size; }
+  return at;
+}
 function startRoom(r) {
   if (r.state !== 'wait') return;
   if (!r.members.length) { rooms.delete(r.id); return; }
+  // give a party that is still arriving a few more seconds, once
+  if (!r.ext && groupsOf(r).some(g => g.members.length < g.size)) { r.ext = 1; r.timer = setTimeout(() => startRoom(r), 4000); return; }
   r.state = 'play';
   const ffa = r.mode.includes('ffa');
+  const groups = groupsOf(r), at = pack(groups, ffa) || new Map();
+  const taken = new Set();
+  for (const g of groups) { let s = at.has(g) ? at.get(g) : -1; for (const m of g.members) { if (s < 0 || taken.has(s)) { s = 0; while (taken.has(s)) s++; } m.slot = s; taken.add(s); s++; } }
   const f = [];
-  r.members.forEach((m, i) => { m.slot = i; f.push({ s: i, h: 1, ch: m.ch, gun: m.gun, camo: m.camo || '', skins: m.skins || {} }); });
-  for (let s = r.members.length; s < CAP; s++) {
-    f.push({ s, h: 0, ch: CHARS[Math.floor(Math.random() * CHARS.length)], gun: GUNS[s % GUNS.length] });
+  for (let s = 0; s < CAP; s++) {
+    const m = r.members.find(x => x.slot === s);
+    f.push(m ? { s, h: 1, ch: m.ch, gun: m.gun, camo: m.camo || '', skins: m.skins || {} } : { s, h: 0, ch: CHARS[Math.floor(Math.random() * CHARS.length)], gun: GUNS[s % GUNS.length] });
   }
-  r.host = r.members[0];
+  r.host = r.members.reduce((a, b) => (b.slot < a.slot ? b : a));
   for (const m of r.members) send(m, { t: 'start', you: m.slot, host: r.host.slot, mode: r.mode, ffa, f });
   console.log('room', r.id, r.mode, 'started with', r.members.length, 'players');
 }
@@ -230,6 +309,7 @@ function onMsg(c, msg) {
   if (t === 'hello') return hello(c, msg);
   if (t === 'who') return who(c, msg);
   if (t === 'dm') return dm(c, msg);
+  if (/^p(look|inv|acc|dec|leave|go|can)$/.test(t)) return party(c, t, msg);
   const r = c.room; if (!r || r.state !== 'play') return;
   if (t === 'pick') {            // character select: a player picks for themselves, the host picks for bots
     if (!okId(msg.ch)) return;
