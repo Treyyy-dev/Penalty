@@ -27,6 +27,15 @@ const server = http.createServer((req, res) => {
       res.end(buf);
     });
   }
+  // the builds of the game that index.html chooses between
+  const bd = /^\/builds\/(\d{14}\.html|index\.json)$/.exec(url);
+  if (bd) {
+    return fs.readFile(path.join(__dirname, 'builds', bd[1]), (err, buf) => {
+      if (err) { res.writeHead(404); return res.end('not found'); }
+      res.writeHead(200, { 'Content-Type': bd[1].endsWith('.json') ? 'application/json' : 'text/html; charset=utf-8', 'Content-Length': buf.length, 'Cache-Control': 'no-cache' });
+      res.end(buf);
+    });
+  }
   // the download packs (music for the Full download)
   const pk = /^\/packs\/([a-z0-9_-]+\.(wav|json))$/.exec(url);
   if (pk) {

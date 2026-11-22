@@ -1,0 +1,36 @@
+{
+ "builds": [
+  {
+   "id": "20261122090202",
+   "note": "Studio and release system; character select; countdown; visible bullets",
+   "html": 200688,
+   "packs": "928f7abf385a",
+   "packBytes": 3688690,
+   "content": {
+    "ch": [
+     "eli",
+     "june",
+     "dex",
+     "mara",
+     "noah",
+     "sloane",
+     "ivy",
+     "kai",
+     "wren",
+     "asher"
+    ],
+    "wp": [
+     "pistol",
+     "revolver",
+     "smg",
+     "shotgun",
+     "rifle",
+     "sniper"
+    ],
+    "map": [
+     "mansion"
+    ]
+   }
+  }
+ ]
+}
