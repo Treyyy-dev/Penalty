@@ -247,7 +247,8 @@ h1,h2{font-family:'Creepster','Special Elite',serif;font-weight:400;margin:0;let
 #selSlots{display:flex;gap:10px;justify-content:center;width:100%}
 .sslot{flex:1;max-width:31%;border:2px solid #33333c;border-radius:10px;background:#121216;padding:4px;text-align:center;font-size:11px;letter-spacing:1px;color:#bbb}
 .sslot.cur{border-color:#e8b422;box-shadow:0 0 16px rgba(232,180,34,.55);color:#fff}
-.sslot .ph{aspect-ratio:200/260;display:flex;align-items:center;justify-content:center;font:42px Arial,sans-serif;color:#444;background:#07070a;border-radius:7px;overflow:hidden;margin-bottom:4px}
+.sslot .ph{height:min(36vh,300px);display:flex;align-items:flex-end;justify-content:center;font:42px/min(36vh,300px) Arial,sans-serif;color:#444;background:radial-gradient(ellipse at 50% 30%,#232838,#07070a 75%);border-radius:7px;overflow:hidden;margin-bottom:4px}
+.sslot .ph svg{width:auto!important;height:96%!important;overflow:visible}
 .sslot svg,.scard svg{display:block;width:100%!important;height:auto!important;border-radius:0!important;margin:0!important}
 #selGrid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;width:100%;margin-top:auto;padding-bottom:calc(16px + env(safe-area-inset-bottom))}
 .scard{position:relative;border:2px solid #33333c;border-radius:8px;overflow:hidden;background:#121216;padding:0;min-width:0}
@@ -569,7 +570,7 @@ h1,h2{font-family:'Creepster','Special Elite',serif;font-weight:400;margin:0;let
 
 <script>
 /* ================= AUTO-UPDATE ================= */
-const BUILD='20261122083132';
+const BUILD='20261122083635';
 function checkUpdate(){try{if(window.G&&!window.G.over)return}catch(e){}
  fetch(location.pathname+'?cb='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{const m=/const BUILD='(\d+)'/.exec(t);if(m&&m[1]>BUILD&&!(typeof G!=='undefined'&&G&&!G.over&&document.getElementById('game').classList.contains('on')))location.replace(location.pathname+'?v='+m[1])}).catch(()=>{})}
 checkUpdate();document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkUpdate()});setInterval(checkUpdate,120000);
@@ -1294,7 +1295,7 @@ function charSelect(m,done){const ffa=!!m.ffa,you=m.you,mates=ffa?m.f.filter(f=>
   $('selC').textContent=k>=turns?'':Math.max(0,Math.ceil((t0+(k+1)*TURN-now)/1000));
   $('selHint').textContent=k>=turns?'':my?'Tap a survivor you own. Your teammates cannot pick the same one.':'';
   const key=JSON.stringify(picked)+k;if(key!==shown){shown=key;
-   document.querySelectorAll('#selSlots .sslot').forEach(d=>{const s=+d.dataset.s,id=picked[s];d.classList.toggle('cur',k<turns&&turnOf(s)===k&&!id);const ph=d.firstChild;if(id&&ph.dataset.c!==id){ph.dataset.c=id;ph.innerHTML=art(chr(id));d.lastChild.textContent=(s===you?'YOU · ':'')+chr(id).n.split(' ')[0].toUpperCase()}});
+   document.querySelectorAll('#selSlots .sslot').forEach(d=>{const s=+d.dataset.s,id=picked[s];d.classList.toggle('cur',k<turns&&turnOf(s)===k&&!id);const ph=d.firstChild;if(id&&ph.dataset.c!==id){ph.dataset.c=id;ph.className='ph idle i'+CH.indexOf(chr(id));ph.innerHTML=`<svg viewBox="-4 0 208 792" xmlns="http://www.w3.org/2000/svg">${figIn(chr(id),'ok',0,false,{hand:S.eq.g1,back:S.eq.g2})}</svg>`;d.lastChild.textContent=(s===you?'YOU · ':'')+chr(id).n.split(' ')[0].toUpperCase()}});
    document.querySelectorAll('#selGrid .scard').forEach(b=>{const id=b.dataset.c;b.classList.toggle('lock',!S.owned[id]);b.classList.toggle('taken',!!S.owned[id]&&taken(you,id)&&picked[you]!==id);b.classList.toggle('sel',picked[you]===id)})}
   $('selGrid').classList.toggle('off',!my)}
  function step(){const now=Date.now(),k=Math.floor((now-t0)/TURN);
