@@ -409,6 +409,48 @@
      "mansion"
     ]
    }
+  },
+  {
+   "id": "20261122102917",
+   "note": "Download type moved to the start screen ⚙ only",
+   "html": 257984,
+   "packs": "928f7abf385a",
+   "packBytes": 3688690,
+   "content": {
+    "ch": [
+     "eli",
+     "june",
+     "dex",
+     "mara",
+     "noah",
+     "sloane",
+     "ivy",
+     "kai",
+     "wren",
+     "asher",
+     "zane",
+     "luna",
+     "rex",
+     "nova",
+     "omar",
+     "tess",
+     "jax",
+     "yuki",
+     "cole",
+     "sage"
+    ],
+    "wp": [
+     "pistol",
+     "revolver",
+     "smg",
+     "shotgun",
+     "rifle",
+     "sniper"
+    ],
+    "map": [
+     "mansion"
+    ]
+   }
   }
  ]
 }
