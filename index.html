@@ -396,7 +396,6 @@ h1,h2{font-family:'Creepster','Special Elite',serif;font-weight:400;margin:0;let
 <div id="startS" class="screen on">
   <div class="stGlow"></div>
   <h1 class="stTitle">PENALTY</h1>
-  <div class="stSub">3 v 3 v 3 v 3</div>
   <div id="stDuo"><div id="stEli" class="idle i0"></div><div id="stKai" class="idle i7"></div></div>
   <div class="stFloor"></div>
   <div class="stTap">TAP TO START</div>
@@ -491,7 +490,7 @@ h1,h2{font-family:'Creepster','Special Elite',serif;font-weight:400;margin:0;let
 
 <script>
 /* ================= AUTO-UPDATE ================= */
-const BUILD='20261122070814';
+const BUILD='20261122071140';
 function checkUpdate(){try{if(window.G&&!window.G.over)return}catch(e){}
  fetch(location.pathname+'?cb='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{const m=/const BUILD='(\d+)'/.exec(t);if(m&&m[1]>BUILD&&!(typeof G!=='undefined'&&G&&!G.over&&document.getElementById('game').classList.contains('on')))location.replace(location.pathname+'?v='+m[1])}).catch(()=>{})}
 checkUpdate();document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkUpdate()});setInterval(checkUpdate,120000);
