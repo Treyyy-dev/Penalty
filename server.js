@@ -27,6 +27,15 @@ const server = http.createServer((req, res) => {
       res.end(buf);
     });
   }
+  // the download packs (music for the Full download)
+  const pk = /^\/packs\/([a-z0-9_-]+\.(wav|json))$/.exec(url);
+  if (pk) {
+    return fs.readFile(path.join(__dirname, 'packs', pk[1]), (err, buf) => {
+      if (err) { res.writeHead(404); return res.end('not found'); }
+      res.writeHead(200, { 'Content-Type': pk[2] === 'wav' ? 'audio/wav' : 'application/json', 'Content-Length': buf.length, 'Cache-Control': pk[2] === 'wav' ? 'public, max-age=86400' : 'no-cache' });
+      res.end(buf);
+    });
+  }
   res.writeHead(404, { 'Content-Type': 'text/plain' });
   res.end('not found');
 });

@@ -522,6 +522,7 @@ h1,h2{font-family:'Creepster','Special Elite',serif;font-weight:400;margin:0;let
   
   <div class="setb">
     <div class="srow"><span>Sound</span><button class="sbtn" id="sSound">ON</button></div>
+    <div class="srow"><span>Music</span><button class="sbtn" id="sMus">ON</button></div>
     <div class="srow"><span>FPS</span><div class="seg" id="sFps"><button data-v="30">30</button><button data-v="60">60</button><button data-v="120">120</button></div></div>
     <div class="srow"><span>Quality</span><div class="seg" id="sQ"><button data-v="low">LOW</button><button data-v="med">MEDIUM</button><button data-v="high">HIGH</button></div></div>
     <div class="srow"><span>Motion blur</span><button class="sbtn" id="sMb">OFF</button></div>
@@ -552,7 +553,7 @@ h1,h2{font-family:'Creepster','Special Elite',serif;font-weight:400;margin:0;let
 
 <script>
 /* ================= AUTO-UPDATE ================= */
-const BUILD='20261122074451';
+const BUILD='20261122074952';
 function checkUpdate(){try{if(window.G&&!window.G.over)return}catch(e){}
  fetch(location.pathname+'?cb='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{const m=/const BUILD='(\d+)'/.exec(t);if(m&&m[1]>BUILD&&!(typeof G!=='undefined'&&G&&!G.over&&document.getElementById('game').classList.contains('on')))location.replace(location.pathname+'?v='+m[1])}).catch(()=>{})}
 checkUpdate();document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkUpdate()});setInterval(checkUpdate,120000);
@@ -670,7 +671,7 @@ S.wp=S.wp||{};['pistol','rifle'].forEach(k=>S.wp[k]=S.wp[k]||1);S.eq=S.eq||{g1:'
 const $=id=>document.getElementById(id);
 const fixEq=()=>{const ok=i=>i&&WP.some(w=>w.id===i)&&S.wp[i];if(!ok(S.eq.g1))S.eq.g1='pistol';if(!ok(S.eq.g2)||S.eq.g2===S.eq.g1)S.eq.g2=S.eq.g1==='rifle'?'pistol':(ok(S.eq.g2)&&S.eq.g2!==S.eq.g1?S.eq.g2:'rifle')};
 const chr=id=>CH.find(c=>c.id===id);
-function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===id));const tab=['menu','gacha','coll','settings','chal'].includes(id);if(id==='chal')drawChal();$('nav').style.display=tab?'flex':'none';document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('act',b.dataset.go===id));if(id==='settings')$('sSound').textContent=muted?'OFF':'ON';if(id==='menu')drawMenu();if(id==='gacha')drawGacha();if(id==='coll')drawColl()}
+function show(id){if(typeof PK!=='undefined')music(id==='game'?'match':'menu');document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===id));const tab=['menu','gacha','coll','settings','chal'].includes(id);if(id==='chal')drawChal();$('nav').style.display=tab?'flex':'none';document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('act',b.dataset.go===id));if(id==='settings')$('sSound').textContent=muted?'OFF':'ON';if(id==='menu')drawMenu();if(id==='gacha')drawGacha();if(id==='coll')drawColl()}
 function drawMenu(){$('mSouls').innerHTML=COIN+S.souls;{const pc=chr(S.active),bm=(S.mode||'team').includes('ffa')?'rffa':'rteam';$('prof').innerHTML=`<span class="pa">${art(pc)}</span><span style="min-width:0"><b></b><small>${rankTxt(bm).split(' · ')[0]} · ${S.wins||0} WINS</small></span>`;$('prof').querySelector('b').textContent=myName()}const c=chr(S.active);$('homeChar').className='idle i'+CH.indexOf(c);$('homeChar').innerHTML=`<svg viewBox="-4 0 208 792" xmlns="http://www.w3.org/2000/svg">${figIn(c,'ok',0,false,{hand:S.eq.g1,back:S.eq.g2})}</svg>`;$('homeName').innerHTML=c.n+'<small>'+loadTxt()+'</small>';document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('act',b.dataset.go==='menu'));drawMode();$('modeList').classList.remove('on')}
 document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{tick();show(b.dataset.go)});
 
@@ -789,7 +790,7 @@ function sfx(k){if(!AC||muted)return;const t=AC.currentTime,g=AC.createGain();g.
   else if(k==='slash'){const n=noise(.14),f=AC.createBiquadFilter();f.type='highpass';f.frequency.setValueAtTime(900,t);f.frequency.exponentialRampToValueAtTime(5000,t+.12);n.connect(f);f.connect(g);g.gain.setValueAtTime(.35,t);g.gain.exponentialRampToValueAtTime(.001,t+.14);n.start(t)}
   else if(k==='bad'){const o=AC.createOscillator();o.type='square';o.frequency.value=90;g.gain.setValueAtTime(.1,t);g.gain.exponentialRampToValueAtTime(.001,t+.25);o.connect(g);o.start(t);o.stop(t+.25)}
 }
-function tick(){initAudio();sfx('tick')}
+function tick(){initAudio();sfx('tick');if(typeof music==='function'&&typeof PK!=='undefined')music()}
 function setMute(v){muted=v;S.muted=v;save();if(master)master.gain.value=v?0:.9;$('bMute').style.opacity=v?.4:1;$('sSound').textContent=v?'OFF':'ON'}
 $('bMute').onclick=()=>setMute(!muted);$('sSound').onclick=()=>{initAudio();setMute(!muted);sfx('tick')};
 {let arm=0;$('sReset').onclick=()=>{if(!arm){arm=1;$('sReset').textContent='TAP AGAIN';setTimeout(()=>{arm=0;$('sReset').textContent='RESET'},3000)}else{arm=0;S.souls=300;S.owned={eli:1};S.active='eli';S.wp={pistol:1,rifle:1};S.eq={g1:'pistol',g2:'rifle'};save();$('sReset').textContent='DONE'}}}
@@ -1263,8 +1264,8 @@ $('actB').onclick=doAct;$('abB').onclick=useAb;$('swapB').onclick=swapGun;
 if(!S.uid){S.uid='P'+String(Math.floor(Math.random()*1e9)).padStart(9,'0');save()}
 const myName=()=>(S.name||'PLAYER'+S.uid.slice(-4)).toUpperCase().replace(/[^A-Z0-9 _-]/g,'').trim().slice(0,14)||'PLAYER'+S.uid.slice(-4);
 {let shown=false;const d=()=>{$('stId').textContent=shown?'ID '+S.uid:'USER ID · TAP TO SHOW'};d();$('stId').onclick=e=>{e.stopPropagation();shown=!shown;tick();d()}}
-const DLT={full:['FULL','Everything. Unlocks every quality setting and starts you on High.',12],min:['MIN','Smaller and lighter. Locks the game to Low quality.',5]};
-function applyDl(){if(S.dl==='min'){S.q='low';S.mb=false}document.querySelectorAll('#sQ button').forEach(b=>b.classList.toggle('lock',S.dl==='min'&&b.dataset.v!=='low'));drawSet()}
+const DLT={full:['FULL','Everything, with music. About 3.7 MB. Unlocks every quality setting.'],min:['MIN','Tiny download. No music, and Low quality only.']};
+function applyDl(){if(S.dl==='min'){S.q='low';S.mb=false}$('sMus').textContent=S.dl!=='full'?'FULL ONLY':S.mus===false?'OFF':'ON';document.querySelectorAll('#sQ button').forEach(b=>b.classList.toggle('lock',S.dl==='min'&&b.dataset.v!=='low'));drawSet()}
 function dlPick(first){const P=$('dlP');P.innerHTML=`<h2 style="font-size:26px;color:#ddd">${first?'CHOOSE YOUR DOWNLOAD':'SETTINGS'}</h2>`+(first?'':'<p style="font:13px Arial,sans-serif;color:#aaa;margin:6px 0 0">Download</p>')+Object.keys(DLT).map(k=>`<button class="dlOpt ${S.dl===k?'on':''}" data-k="${k}">${DLT[k][0]}<small>${DLT[k][1]}</small></button>`).join('')+(first?'':'<button class="dlOpt" id="gSign">SIGN IN WITH GOOGLE<small id="gSignT">Keep your account on any device.</small></button><button class="mbtn alt" id="dlX">CLOSE</button>');
  $('dlM').classList.add('on');
  P.onclick=e=>{const b=e.target.closest('button');if(!b)return;tick();
@@ -1273,14 +1274,39 @@ function dlPick(first){const P=$('dlP');P.innerHTML=`<h2 style="font-size:26px;c
   const k=b.dataset.k;if(!k)return;$('dlM').classList.remove('on');if(k===S.dl&&!first)return;runDl(k)}}
 $('stSet').onclick=e=>{e.stopPropagation();tick();dlPick(false)};
 const TIPS=['Keep your reticle on an enemy and your gun fires by itself.','Your shield comes back if you stay out of fights for a few seconds.','Tap a door to open it. Closed doors block shots.','A knocked teammate can be revived — stand next to them.','Your spare gun is on your back. Swap when the first one runs dry.','Every survivor has their own ability button. Use it early and often.','Hide under the bed in the bedroom to break line of sight.','Win matches and claim challenges to earn coins.','Shotguns hit everyone under your aim up close.','In Team modes the first three players to join are on the same team.'];
-function runDl(kind){const pick=a=>a.map(x=>[Math.random(),x]).sort((p,q)=>p[0]-q[0]).map(x=>x[1]);const cs=pick(CH).slice(0,5),ts=pick(TIPS).slice(0,5);let i=0,done=false;const t0=Date.now(),dur=DLT[kind][2]*1000;
+/* ---- download packs: real files, kept in the browser's cache storage ---- */
+var PK={raw:{},buf:{},dec:{},cur:null,src:null,want:'menu'};const PKC='penalty-packs-v1',pkUrl=f=>'packs/'+f;
+async function pkGet(f,size,onp){let c=null;try{c=await caches.open(PKC);const hit=await c.match(pkUrl(f));if(hit){const b=await hit.arrayBuffer();if(b.byteLength===size){onp&&onp(size);return b}}}catch(e){}
+ const r=await fetch(pkUrl(f),{cache:'no-store'});if(!r.ok)throw new Error('http');let b;
+ if(r.body&&r.body.getReader){const rd=r.body.getReader(),parts=[];let n=0;for(;;){const x=await rd.read();if(x.done)break;parts.push(x.value);n+=x.value.length;onp&&onp(n)}const u=new Uint8Array(n);let o=0;for(const q of parts){u.set(q,o);o+=q.length}b=u.buffer}
+ else{b=await r.arrayBuffer();onp&&onp(b.byteLength)}
+ if(b.byteLength!==size)throw new Error('size');
+ try{if(c)await c.put(pkUrl(f),new Response(b.slice(0),{headers:{'Content-Type':'audio/wav'}}))}catch(e){}
+ return b}
+const pkManifest=async()=>{const r=await fetch(pkUrl('manifest.json'),{cache:'no-store'});if(!r.ok)throw new Error('http');const m=await r.json();if(!m||!Array.isArray(m.full))throw new Error('bad');return m};
+function pkDecode(){if(!AC)return;for(const k in PK.raw){if(PK.buf[k]||PK.dec[k])continue;PK.dec[k]=1;try{AC.decodeAudioData(PK.raw[k].slice(0),b=>{PK.buf[k]=b;if(PK.want===k)music(k)},()=>{PK.dec[k]=0})}catch(e){PK.dec[k]=0}}}
+function musStop(){if(PK.src){try{PK.src.stop()}catch(e){}PK.src=null}PK.cur=null}
+function music(k){if(k)PK.want=k;k=PK.want;if(!AC||S.dl!=='full'||S.mus===false){musStop();return}const b=PK.buf[k];if(!b){pkDecode();return}if(PK.cur===k)return;musStop();
+ try{const src=AC.createBufferSource();src.buffer=b;src.loop=true;const g=AC.createGain();g.gain.value=k==='match'?.2:.3;src.connect(g);g.connect(master);src.start();PK.src=src;PK.cur=k}catch(e){}}
+async function pkLoad(){try{const m=await pkManifest();for(const f of m.full)PK.raw[f.id]=await pkGet(f.file,f.size);pkDecode()}catch(e){}}
+function runDl(kind){const pick=a=>a.map(x=>[Math.random(),x]).sort((p,q)=>p[0]-q[0]).map(x=>x[1]);const cs=pick(CH).slice(0,5),ts=pick(TIPS).slice(0,5);let i=0,state='run';
  const draw=()=>{const c=cs[i];$('dlChar').className='idle i'+CH.indexOf(c);$('dlChar').innerHTML=`<svg viewBox="-4 0 208 792" xmlns="http://www.w3.org/2000/svg">${figIn(c,'ok',0,false,{hand:'pistol',back:'rifle'})}</svg>`;$('dlName').textContent=c.n.toUpperCase();$('dlTip').textContent='TIP: '+ts[i];$('dlDots').innerHTML=cs.map((x,j)=>`<i class="${j===i?'on':''}"></i>`).join('')};
  $('dlPrev').onclick=e=>{e.stopPropagation();i=(i+4)%5;tick();draw()};$('dlNext').onclick=e=>{e.stopPropagation();i=(i+1)%5;tick();draw()};
  show('dlS');draw();
- const iv=setInterval(()=>{const k=Math.min(1,(Date.now()-t0)/dur);$('dlBar').firstChild.style.width=(k*100)+'%';$('dlLbl').textContent=k<1?'DOWNLOADING '+DLT[kind][0]+' · '+Math.floor(k*100)+'%':'DONE — TAP TO PLAY';
-  if(k>=1&&!done){done=true;clearInterval(iv);S.dl=kind;if(kind==='full')S.q='high';save();applyDl();sfx('rare')}},100);
- $('dlBot').onclick=()=>{if(done){initAudio();show('menu')}}}
-applyDl();
+ const bar=k=>{$('dlBar').firstChild.style.width=(Math.max(0,Math.min(1,k))*100)+'%'},lbl=t=>{$('dlLbl').textContent=t},mb=n=>(n/1048576).toFixed(1);
+ const finish=k=>{state='done';S.dl=k;if(k==='full'){if(S.q==='low')S.q='high'}else{musStop();PK.raw={};PK.buf={};try{caches.delete(PKC)}catch(e){}}save();applyDl();bar(1);lbl('DONE — TAP TO PLAY');sfx('rare');if(k==='full')pkDecode()};
+ const go=async()=>{state='run';bar(0);lbl('DOWNLOADING '+DLT[kind][0]+'...');
+  try{if(kind==='min'){try{await pkManifest()}catch(e){}finish('min');return}
+   const m=await pkManifest(),total=m.full.reduce((a,f)=>a+f.size,0);let base=0;
+   for(const f of m.full){PK.raw[f.id]=await pkGet(f.file,f.size,n=>{bar((base+n)/total);lbl('DOWNLOADING FULL · '+mb(base+n)+' / '+mb(total)+' MB')});base+=f.size}
+   finish('full')}
+  catch(e){state='fail';lbl('DOWNLOAD FAILED — TAP TO TRY AGAIN, OR HOLD TO USE MIN')}};
+ let hold=null;const B=$('dlBot');
+ B.onclick=()=>{if(state==='done'){initAudio();show('menu');socConnect()}else if(state==='fail')go()};
+ B.onpointerdown=()=>{clearTimeout(hold);if(state==='fail')hold=setTimeout(()=>{if(state==='fail')finish('min')},900)};B.onpointerup=B.onpointerleave=()=>clearTimeout(hold);
+ go()}
+if(S.dl==='full')pkLoad();
+applyDl();$('sMus').onclick=()=>{tick();if(S.dl!=='full')return;S.mus=S.mus===false;save();applyDl();music()};
 /* ---- friends and chat ---- */
 S.friends=S.friends||[];S.chats=S.chats||{};S.unread=S.unread||{};
 const SOC={ws:null,on:false,online:{},view:null,note:''};
