@@ -94,6 +94,7 @@ function drop(c) {
   c.closed = true; clients.delete(c);
   try { c.sock.destroy(); } catch (e) {}
   leave(c);
+  socialDrop(c);
 }
 
 // keep connections honest: ping every 25s, drop anything silent for 70s
@@ -104,6 +105,48 @@ setInterval(() => {
     try { c.sock.write(Buffer.from([0x89, 0])); } catch (e) { drop(c); }
   }
 }, 25000);
+
+/* ---------- friends and chat ---------- */
+// Players are known by name. Nothing is stored on disk: who is online and any
+// waiting messages live in memory and are lost when the server restarts.
+const byName = new Map();        // NAME -> Set of connections
+const waiting = new Map();       // NAME -> messages sent while they were offline
+const cleanName = n => String(n || '').toUpperCase().replace(/[^A-Z0-9 _-]/g, '').trim().slice(0, 14);
+const isOn = n => { const s = byName.get(n); return !!(s && s.size); };
+function hello(c, msg) {
+  socialDrop(c);
+  const n = cleanName(msg.name); if (!n) return;
+  c.name = n; c.uid = String(msg.uid || '').slice(0, 16);
+  if (!byName.has(n)) byName.set(n, new Set());
+  byName.get(n).add(c);
+  send(c, { t: 'hi', name: n });
+  const q = waiting.get(n);
+  if (q) { waiting.delete(n); for (const m of q) send(c, m); }
+}
+function socialDrop(c) {
+  if (!c.name) return;
+  const s = byName.get(c.name);
+  if (s) { s.delete(c); if (!s.size) byName.delete(c.name); }
+  c.name = null;
+}
+function who(c, msg) {
+  const on = {};
+  for (const x of (Array.isArray(msg.names) ? msg.names : []).slice(0, 60)) { const n = cleanName(x); if (n) on[n] = isOn(n); }
+  send(c, { t: 'who', on });
+}
+function dm(c, msg) {
+  if (!c.name) return;
+  const to = cleanName(msg.to), text = String(msg.text || '').slice(0, 200);
+  if (!to || !text.trim() || to === c.name) return;
+  const now = Date.now();
+  c.dms = (c.dms || []).filter(x => now - x < 10000); if (c.dms.length >= 8) return;   // at most 8 messages per 10s
+  c.dms.push(now);
+  const out = { t: 'dm', from: c.name, text };
+  const s = byName.get(to);
+  if (s && s.size) { for (const x of s) send(x, out); return; }
+  if (waiting.size > 2000 && !waiting.has(to)) return;
+  const q = waiting.get(to) || []; q.push(out); if (q.length > 30) q.shift(); waiting.set(to, q);
+}
 
 /* ---------- rooms ---------- */
 const rooms = new Map();
@@ -160,6 +203,9 @@ function onMsg(c, msg) {
   const t = msg.t;
   if (t === 'join') return join(c, msg);
   if (t === 'ping') return send(c, { t: 'pong' });
+  if (t === 'hello') return hello(c, msg);
+  if (t === 'who') return who(c, msg);
+  if (t === 'dm') return dm(c, msg);
   const r = c.room; if (!r || r.state !== 'play') return;
   if (t === 'st') { msg.s = c.slot; return others(r, c, msg); }
   if (t === 'bots') { if (r.host === c) others(r, c, msg); return; }
