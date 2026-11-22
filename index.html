@@ -24,7 +24,8 @@ h1,h2{font-family:'Creepster','Special Elite',serif;font-weight:400;margin:0;let
 .tagl{font-size:12px;color:#a9a9a9;letter-spacing:3px;margin-top:10px}
 #menu h1{font-size:64px;line-height:.95;color:#c9161b;text-shadow:0 0 18px rgba(200,20,20,.55),0 3px 0 #000;margin-top:8px;animation:flick 5s infinite}
 @keyframes flick{0%,92%,96%,100%{opacity:1}94%{opacity:.35}98%{opacity:.7}}
-.souls{position:absolute;top:14px;right:14px;font-size:14px;background:rgba(0,0,0,.6);border:1px solid #333;border-radius:20px;padding:5px 12px;color:#9fe0ff;z-index:5}
+.coin{display:inline-flex;align-items:center;justify-content:center;width:1.25em;height:1.25em;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffe98a,#e8b422 60%,#a87410);border:1px solid #7a5208;color:#5a3a00;font:900 .78em/1 Arial,sans-serif;font-style:normal;vertical-align:-.22em;margin-right:.3em;box-shadow:inset 0 0 0 1px rgba(255,255,255,.35)}
+.souls{position:absolute;top:14px;right:14px;font-size:15px;font-weight:700;background:rgba(0,0,0,.6);border:1px solid #333;border-radius:20px;padding:5px 12px 5px 8px;color:#ffe08a;z-index:5}
 #menuChar{position:relative;z-index:2;width:46%;margin-bottom:10px;filter:drop-shadow(0 10px 24px #000)}
 #menuChar .nm{text-align:center;font-size:13px;margin-top:6px;color:#bbb}
 .mbtn{position:relative;z-index:2;width:100%;padding:15px;margin-top:10px;font-size:20px;letter-spacing:4px;border:1px solid #5a1416;background:linear-gradient(#2a0b0c,#120505);border-radius:6px;box-shadow:0 4px 0 #000,inset 0 0 18px rgba(200,30,30,.15)}
@@ -503,7 +504,7 @@ h1,h2{font-family:'Creepster','Special Elite',serif;font-weight:400;margin:0;let
 
 <script>
 /* ================= AUTO-UPDATE ================= */
-const BUILD='20261122073412';
+const BUILD='20261122073606';
 function checkUpdate(){try{if(window.G&&!window.G.over)return}catch(e){}
  fetch(location.pathname+'?cb='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{const m=/const BUILD='(\d+)'/.exec(t);if(m&&m[1]>BUILD&&!(typeof G!=='undefined'&&G&&!G.over&&document.getElementById('game').classList.contains('on')))location.replace(location.pathname+'?v='+m[1])}).catch(()=>{})}
 checkUpdate();document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkUpdate()});setInterval(checkUpdate,120000);
@@ -610,7 +611,8 @@ function art(c,bust,blink){
   s+=bust?'</g>':`<rect width="200" height="260" fill="url(#${u}v)"/></g></svg>`;
   return s;
 }
-function card(c,opt={}){return `<div class="card ${opt.sel?'sel':''}" data-c="${c.id}">${art(c)}${opt.price?`<span class="price">☠ ${opt.price}</span>`:''}${opt.sel?'<span class="selb">SELECTED</span>':''}<span class="nm">${c.n}</span></div>`}
+const COIN='<i class="coin">P</i>';
+function card(c,opt={}){return `<div class="card ${opt.sel?'sel':''}" data-c="${c.id}">${art(c)}${opt.price?`<span class="price">${COIN}${opt.price}</span>`:''}${opt.sel?'<span class="selb">SELECTED</span>':''}<span class="nm">${c.n}</span></div>`}
 
 /* ================= SAVE ================= */
 let S={souls:300,owned:{eli:1},active:'eli'};
@@ -621,14 +623,14 @@ const $=id=>document.getElementById(id);
 const fixEq=()=>{const ok=i=>i&&WP.some(w=>w.id===i)&&S.wp[i];if(!ok(S.eq.g1))S.eq.g1='pistol';if(!ok(S.eq.g2)||S.eq.g2===S.eq.g1)S.eq.g2=S.eq.g1==='rifle'?'pistol':(ok(S.eq.g2)&&S.eq.g2!==S.eq.g1?S.eq.g2:'rifle')};
 const chr=id=>CH.find(c=>c.id===id);
 function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===id));const tab=['menu','gacha','coll','settings','chal'].includes(id);if(id==='chal')drawChal();$('nav').style.display=tab?'flex':'none';document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('act',b.dataset.go===id));if(id==='settings')$('sSound').textContent=muted?'OFF':'ON';if(id==='menu')drawMenu();if(id==='gacha')drawGacha();if(id==='coll')drawColl()}
-function drawMenu(){$('mSouls').textContent='☠ '+S.souls+' souls';const c=chr(S.active);$('homeChar').className='idle i'+CH.indexOf(c);$('homeChar').innerHTML=`<svg viewBox="-4 0 208 792" xmlns="http://www.w3.org/2000/svg">${figIn(c,'ok',0,false,{hand:S.eq.g1,back:S.eq.g2})}</svg>`;$('homeName').innerHTML=c.n+'<small>'+loadTxt()+'</small>';document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('act',b.dataset.go==='menu'));drawMode();$('modeList').classList.remove('on')}
+function drawMenu(){$('mSouls').innerHTML=COIN+S.souls;const c=chr(S.active);$('homeChar').className='idle i'+CH.indexOf(c);$('homeChar').innerHTML=`<svg viewBox="-4 0 208 792" xmlns="http://www.w3.org/2000/svg">${figIn(c,'ok',0,false,{hand:S.eq.g1,back:S.eq.g2})}</svg>`;$('homeName').innerHTML=c.n+'<small>'+loadTxt()+'</small>';document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('act',b.dataset.go==='menu'));drawMode();$('modeList').classList.remove('on')}
 document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{tick();show(b.dataset.go)});
 
 
 /* ================= GACHA ================= */
 const BAN=[{n:'DEAD OF NIGHT',col:'#3a1250',f:['asher','wren','kai','mara']},{n:'FIRST RESPONDERS',col:'#0f3a5a',f:['noah','june','eli','wren']},{n:'GHOST PROTOCOL',col:'#1c4a3a',f:['sloane','ivy','kai','dex']},{n:'INFERNO',col:'#5a1a0c',f:['mara','asher','ivy','noah']},{n:'ROOKIES',col:'#4a4212',f:['eli','june','dex','sloane']}];
 let gBan=0,gFeat=0;
-function drawGacha(){const b=BAN[gBan],c=chr(b.f[gFeat]),rc={C:'#c5ccd4',R:'#7cc0ff',SR:'#d3a4ff',SSR:'#ffd76a'}[c.r];$('gSouls').textContent='☠ '+S.souls;
+function drawGacha(){const b=BAN[gBan],c=chr(b.f[gFeat]),rc={C:'#c5ccd4',R:'#7cc0ff',SR:'#d3a4ff',SSR:'#ffd76a'}[c.r];$('gSouls').innerHTML=COIN+S.souls;
  $('gBan').style.background=`radial-gradient(ellipse at 50% 42%,${b.col},#050507 72%)`;$('gTitle').innerHTML=b.n+`<small>BANNER ${gBan+1} / 5</small>`;
  const g=$('gChar');g.className='idle i'+CH.indexOf(c);g.innerHTML=`<svg viewBox="-4 0 208 792" xmlns="http://www.w3.org/2000/svg">${figIn(c,'ok',0,false,{hand:'pistol'})}</svg>`;g.classList.remove('in');void g.offsetWidth;g.classList.add('in');
  $('gName').innerHTML=`<b style="color:${rc}">${c.r}</b> ${c.n}<small>${S.owned[c.id]?'Owned':'Not owned'} · Ability: ${ABIL[c.id].n}</small>`;
@@ -637,7 +639,7 @@ setInterval(()=>{if($('gacha').classList.contains('on')&&!$('reveal').classList.
 $('gPrev').onclick=()=>{gBan=(gBan+4)%5;gFeat=0;tick();drawGacha()};$('gNext').onclick=()=>{gBan=(gBan+1)%5;gFeat=0;tick();drawGacha()};
 function roll(min){let r=Math.random()*100,rar=r<3?'SSR':r<15?'SR':r<45?'R':'C';if(min&&rar==='C')rar='R';const ft=BAN[gBan].f.map(chr).filter(c=>c.r===rar);if(ft.length&&Math.random()<.4)return ft[Math.floor(Math.random()*ft.length)];const pool=CH.concat(WP).filter(c=>c.r===rar);return pool[Math.floor(Math.random()*pool.length)]}
 let queue=[];
-function pull(n,cost){if(S.souls<cost){$('gSouls').textContent='Not enough souls — play to earn more';return}initAudio();S.souls-=cost;track('pulls',n);queue=[];let good=false;for(let i=0;i<n;i++){let c=roll(n>1&&i===n-1&&!good);if(c.r!=='C')good=true;const bag=c.t?S.wp:S.owned,isNew=!bag[c.id];bag[c.id]=(bag[c.id]||0)+1;if(!isNew)S.souls+=30;queue.push({c,isNew})}save();drawGacha();nextReveal()}
+function pull(n,cost){if(S.souls<cost){$('gSouls').textContent='Not enough coins — play to earn more';return}initAudio();S.souls-=cost;track('pulls',n);queue=[];let good=false;for(let i=0;i<n;i++){let c=roll(n>1&&i===n-1&&!good);if(c.r!=='C')good=true;const bag=c.t?S.wp:S.owned,isNew=!bag[c.id];bag[c.id]=(bag[c.id]||0)+1;if(!isNew)S.souls+=30;queue.push({c,isNew})}save();drawGacha();nextReveal()}
 function nextReveal(){const q=queue.shift();if(!q){$('reveal').classList.remove('on');drawGacha();return}const f=$('flip'),inf=$('revInfo');f.style.transition='none';f.classList.remove('show');inf.classList.remove('on');$('revCard').innerHTML=q.c.t?wcard(q.c):card(q.c);inf.innerHTML=`<div class="n" style="color:${q.c.r==='SSR'?'#ffd76a':q.c.r==='SR'?'#d3a4ff':q.c.r==='R'?'#7cc0ff':'#ccc'}">${q.c.n}</div><div class="p">${RAR[q.c.r].n} ${q.c.t?'gun':'survivor'} · ${q.c.t?q.c.d:'Ability: '+ABIL[q.c.id].n+' — '+ABIL[q.c.id].d}</div><div class="new">${q.isNew?(q.c.t?'★ NEW WEAPON ★':'★ NEW SURVIVOR ★'):'Duplicate · +30 souls'}</div>`;$('reveal').classList.add('on');void f.offsetWidth;f.style.transition='';setTimeout(()=>{f.classList.add('show');inf.classList.add('on');sfx(q.c.r==='SSR'||q.c.r==='SR'?'rare':'tick')},350)}
 $('reveal').onclick=()=>{if($('flip').classList.contains('show'))nextReveal()};
 $('pull1').onclick=()=>pull(1,100);$('pull10').onclick=()=>pull(10,900);
@@ -646,10 +648,10 @@ $('pull1').onclick=()=>pull(1,100);$('pull10').onclick=()=>pull(10,900);
 const CPRICE=1500,WPRICE=800;
 function showC(c){const own=!!S.owned[c.id];
  $('detailP').innerHTML=`<div class="duo"><svg class="idle i${CH.indexOf(c)}" viewBox="-4 0 208 792" xmlns="http://www.w3.org/2000/svg">${figIn(c,'ok',0,false,{hand:S.eq.g1,back:S.eq.g2})}</svg></div><h2 style="font-size:26px;color:#ddd">${c.n}</h2><p>${c.bio}</p><p class="perk">Ability: ${ABIL[c.id].n} — ${ABIL[c.id].d}</p>`+
-  (own?`<button class="mbtn" id="dSel">${S.active===c.id?'SELECTED':'SELECT'}</button>`:`<button class="mbtn" id="dBuy">BUY — ☠ ${CPRICE}</button><p id="dMsg" style="color:#9fe0ff">You have ☠ ${S.souls}</p>`)+`<button class="mbtn alt" id="dClose">CLOSE</button>`;
+  (own?`<button class="mbtn" id="dSel">${S.active===c.id?'SELECTED':'SELECT'}</button>`:`<button class="mbtn" id="dBuy">BUY — ${COIN}${CPRICE}</button><p id="dMsg" style="color:#9fe0ff">You have ${COIN}${S.souls}</p>`)+`<button class="mbtn alt" id="dClose">CLOSE</button>`;
  $('detail').classList.add('on');$('dClose').onclick=()=>{$('detail').classList.remove('on');drawColl()};
  if(own)$('dSel').onclick=()=>{S.active=c.id;save();$('detail').classList.remove('on');drawColl()};
- else $('dBuy').onclick=()=>{if(S.souls<CPRICE){sfx('bad');$('dMsg').textContent=`Not enough souls — you need ☠ ${CPRICE-S.souls} more. Win matches and claim challenges.`;return}S.souls-=CPRICE;S.owned[c.id]=1;save();initAudio();sfx('rare');showC(c)}}
+ else $('dBuy').onclick=()=>{if(S.souls<CPRICE){sfx('bad');$('dMsg').innerHTML=`Not enough coins — you need ${COIN}${CPRICE-S.souls} more. Win matches and claim challenges.`;return}S.souls-=CPRICE;S.owned[c.id]=1;save();initAudio();sfx('rare');showC(c)}}
 $('grid').onclick=e=>{const el=e.target.closest('.card');if(!el)return;tick();if(el.dataset.w)showW(wpn(el.dataset.w));else showC(chr(el.dataset.c))};
 
 /* ================= MODES ================= */
@@ -685,18 +687,18 @@ katana:`<path d="M-44,-4 C10,-14 70,-12 112,6 C70,0 10,2 -44,8Z" fill="#e6ebf2" 
 function wArt(w){const u='w'+(uid++),R={c:'#3f4a5c'};return `<svg class="art" viewBox="0 0 200 260" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="${u}b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${R.c}"/><stop offset=".8" stop-color="#0c0c12"/></linearGradient><clipPath id="${u}c"><rect width="200" height="260" rx="10"/></clipPath></defs><g clip-path="url(#${u}c)"><rect width="200" height="260" fill="url(#${u}b)"/>${false?[0,1,2,3,4,5,6,7,8,9].map(i=>`<path d="M100,120 L${100+260*Math.cos(i*.628)},${120+260*Math.sin(i*.628)} L${100+260*Math.cos(i*.628+.16)},${120+260*Math.sin(i*.628+.16)}Z" fill="#fff3b0" opacity=".13"/>`).join(''):''}<circle cx="100" cy="118" r="78" fill="#000" opacity=".28"/><circle cx="100" cy="118" r="78" fill="none" stroke="#fff" stroke-opacity=".14" stroke-width="2"/><g transform="translate(100,120) rotate(-24) scale(.82)">${WSHAPE[w.id]}</g><text x="100" y="222" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="700" fill="#fff" opacity=".55" letter-spacing="3">${w.t==='g'?'GUN':'MELEE'}</text></g></svg>`}
 const eqTag=id=>S.eq.g1===id?'IN HAND':S.eq.g2===id?'ON BACK':'';
 const loadTxt=()=>[S.eq.g1,S.eq.g2].map(i=>i&&wpn(i)?wpn(i).n:'—').join(' · ');
-function wcard(w,opt={}){const e=opt.eq&&eqTag(w.id);return `<div class="card ${e?'sel':''}" data-w="${w.id}">${wArt(w)}${opt.price?`<span class="price">☠ ${opt.price}</span>`:''}${e?`<span class="selb">${e}</span>`:''}<span class="nm">${w.n}</span></div>`}
+function wcard(w,opt={}){const e=opt.eq&&eqTag(w.id);return `<div class="card ${e?'sel':''}" data-w="${w.id}">${wArt(w)}${opt.price?`<span class="price">${COIN}${opt.price}</span>`:''}${e?`<span class="selb">${e}</span>`:''}<span class="nm">${w.n}</span></div>`}
 function equip(slot,id){if(slot==='m')S.eq.m=id;else{const o=slot==='g1'?'g2':'g1';if(S.eq[o]===id)S.eq[o]=S.eq[slot];S.eq[slot]=id;if(!S.eq.g1){S.eq.g1=S.eq.g2;S.eq.g2=null}}save()}
 function showW(w){const own=!!S.wp[w.id];
  $('detailP').innerHTML=wcard(w)+`<h2 style="font-size:26px;color:#ddd">${w.n}</h2><p>${w.d}</p><p class="perk">Damage ${w.dmg} · ${w.mag} rounds · ${w.cd<.15?'Very fast':w.cd<.3?'Fast':w.cd<.5?'Medium':'Slow'} fire</p>`+
-  (own?`<button class="mbtn" id="e1">${S.eq.g1===w.id?'IN YOUR HAND':'EQUIP IN HAND'}</button><button class="mbtn alt" id="e2">${S.eq.g2===w.id?'ON YOUR BACK':'EQUIP ON BACK'}</button>`:`<button class="mbtn" id="dBuy">BUY — ☠ ${WPRICE}</button><p id="dMsg" style="color:#9fe0ff">You have ☠ ${S.souls}</p>`)+`<button class="mbtn alt" id="dClose">CLOSE</button>`;
+  (own?`<button class="mbtn" id="e1">${S.eq.g1===w.id?'IN YOUR HAND':'EQUIP IN HAND'}</button><button class="mbtn alt" id="e2">${S.eq.g2===w.id?'ON YOUR BACK':'EQUIP ON BACK'}</button>`:`<button class="mbtn" id="dBuy">BUY — ${COIN}${WPRICE}</button><p id="dMsg" style="color:#9fe0ff">You have ${COIN}${S.souls}</p>`)+`<button class="mbtn alt" id="dClose">CLOSE</button>`;
  $('detail').classList.add('on');const done=()=>{$('detail').classList.remove('on');drawColl()};$('dClose').onclick=done;
  if(own){$('e1').onclick=()=>{equip('g1',w.id);done()};$('e2').onclick=()=>{equip('g2',w.id);done()}}
- else $('dBuy').onclick=()=>{if(S.souls<WPRICE){sfx('bad');$('dMsg').textContent=`Not enough souls — you need ☠ ${WPRICE-S.souls} more.`;return}S.souls-=WPRICE;S.wp[w.id]=1;save();initAudio();sfx('rare');showW(w)}}
+ else $('dBuy').onclick=()=>{if(S.souls<WPRICE){sfx('bad');$('dMsg').innerHTML=`Not enough coins — you need ${COIN}${WPRICE-S.souls} more.`;return}S.souls-=WPRICE;S.wp[w.id]=1;save();initAudio();sfx('rare');showW(w)}}
 let ctab='s';
 function drawColl(){$('tabS').classList.toggle('on',ctab==='s');$('tabW').classList.toggle('on',ctab==='w');
- if(ctab==='s'){const own=CH.filter(c=>S.owned[c.id]).length;$('cCount').textContent='☠ '+S.souls;$('grid').innerHTML=CH.map(c=>card(c,{price:S.owned[c.id]?0:CPRICE,sel:S.active===c.id})).join('');const a=chr(S.active);$('selInfo').innerHTML=`${own} of ${CH.length} survivors owned · tap one to view, select or buy.<br>Playing as <b>${a.n}</b> — ability: ${ABIL[a.id].n}`}
- else{const own=WP.filter(w=>S.wp[w.id]).length;$('cCount').textContent='☠ '+S.souls;$('grid').innerHTML=WP.map(w=>wcard(w,{price:S.wp[w.id]?0:WPRICE,eq:1})).join('');$('selInfo').innerHTML=`${own} of ${WP.length} guns owned · tap one to view, equip or buy.<br>Loadout: <b>${loadTxt()}</b>`}}
+ if(ctab==='s'){const own=CH.filter(c=>S.owned[c.id]).length;$('cCount').innerHTML=COIN+S.souls;$('grid').innerHTML=CH.map(c=>card(c,{price:S.owned[c.id]?0:CPRICE,sel:S.active===c.id})).join('');const a=chr(S.active);$('selInfo').innerHTML=`${own} of ${CH.length} survivors owned · tap one to view, select or buy.<br>Playing as <b>${a.n}</b> — ability: ${ABIL[a.id].n}`}
+ else{const own=WP.filter(w=>S.wp[w.id]).length;$('cCount').innerHTML=COIN+S.souls;$('grid').innerHTML=WP.map(w=>wcard(w,{price:S.wp[w.id]?0:WPRICE,eq:1})).join('');$('selInfo').innerHTML=`${own} of ${WP.length} guns owned · tap one to view, equip or buy.<br>Loadout: <b>${loadTxt()}</b>`}}
 $('chTabs').onclick=e=>{const v=e.target.dataset.v;if(v){chTab=v;tick();drawChal()}};
 $('chList').onclick=e=>{const b=e.target.closest('.cbtn');if(!b||b.disabled)return;cchk();S.ch[chTab].cl[b.dataset.i]=1;S.souls+=+b.dataset.r;save();initAudio();sfx('rare');drawChal()};
 $('tabS').onclick=()=>{ctab='s';tick();drawColl()};$('tabW').onclick=()=>{ctab='w';tick();drawColl()};
@@ -713,10 +715,10 @@ function ckey(p){const n=new Date(),z=x=>String(x).padStart(2,'0');if(p==='m')re
 function cchk(){S.ch=S.ch||{};CPER.forEach(p=>{const k=ckey(p[0]);if(!S.ch[p[0]]||S.ch[p[0]].key!==k)S.ch[p[0]]={key:k,st:{},cl:{}}})}
 function track(stat,n){cchk();CPER.forEach(p=>{const st=S.ch[p[0]].st;st[stat]=(st[stat]||0)+n})}
 let chTab='d';
-function drawChal(){cchk();$('chSouls').textContent='☠ '+S.souls;document.querySelectorAll('#chTabs button').forEach(b=>b.classList.toggle('on',b.dataset.v===chTab));
+function drawChal(){cchk();$('chSouls').innerHTML=COIN+S.souls;document.querySelectorAll('#chTabs button').forEach(b=>b.classList.toggle('on',b.dataset.v===chTab));
  const pi=CPER.findIndex(p=>p[0]===chTab),P_=CPER[pi],c=S.ch[chTab];let done=0;
  $('chList').innerHTML=CDEF.map((d,i)=>{const tg=d[2][pi],have=Math.min(tg,Math.floor(c.st[d[0]]||0)),ok=have>=tg,cl=c.cl[i],rw=Math.round(P_[2]*(1+i%7*.25)/10)*10;if(cl)done++;
-  return `<div class="crow ${cl?'cl':ok?'ok':''}"><div class="cmain"><div class="cd">${d[1].replace('#',tg.toLocaleString())}</div><div class="cbar"><i style="width:${have/tg*100}%"></i></div><div class="cn">${have.toLocaleString()} / ${tg.toLocaleString()}</div></div><button class="cbtn" data-i="${i}" data-r="${rw}" ${ok&&!cl?'':'disabled'}>${cl?'CLAIMED':ok?'CLAIM<br>☠ '+rw:'☠ '+rw}</button></div>`}).join('');
+  return `<div class="crow ${cl?'cl':ok?'ok':''}"><div class="cmain"><div class="cd">${d[1].replace('#',tg.toLocaleString())}</div><div class="cbar"><i style="width:${have/tg*100}%"></i></div><div class="cn">${have.toLocaleString()} / ${tg.toLocaleString()}</div></div><button class="cbtn" data-i="${i}" data-r="${rw}" ${ok&&!cl?'':'disabled'}>${cl?'CLAIMED':ok?'CLAIM<br>${COIN}'+rw:'${COIN}'+rw}</button></div>`}).join('');
  $('chInfo').textContent=P_[1]+' · '+done+' / 20 claimed · resets '+(chTab==='d'?'every day':chTab==='w'?'every Monday':'on the 1st')}
 
 /* ================= AUDIO ================= */
@@ -1089,7 +1091,7 @@ function end(win){G.over=true;netClose();track('matches',1);if(win)track('wins',
  if(G.rk){const k=G.ffa?'ffa':'team',d=win?(G.ffa?40:30):G.ffa?(place<=3?15:place<=6?0:-15):(place===2?5:-15)+0,before=rpOf(G.md);S.rp[k]=Math.max(0,before+d+G.kills*2);rkTxt=`<br>Rank: ${rankTxt(G.md)} <span style="color:${S.rp[k]>=before?'#7dff8a':'#ff6a6a'}">(${S.rp[k]>=before?'+':''}${S.rp[k]-before})</span>`}
  save();const out=G.team.filter(t=>t.state!=='down').length+(G.down?0:1),mn=(MODES.find(x=>x[0]===G.md)||MODES[0])[1];
  $('endT').textContent=win?'VICTORY':'DEFEATED';$('endT').style.color=win?'#ffd76a':'#c9161b';
- $('endP').innerHTML=`${mn} · you placed ${place} of ${of}<br>`+(win?(G.ffa?'You are the last one standing.':`Your team is the last team standing, with ${out} of you still on your feet.`):(G.ffa?'You went down. Someone else takes the mansion.':'Your whole team is down. Another team takes the mansion.'))+`<br><br>Your takedowns: ${G.kills}${rkTxt}<br><span style="color:#9fe0ff">+${reward} souls</span>`;show('end')}
+ $('endP').innerHTML=`${mn} · you placed ${place} of ${of}<br>`+(win?(G.ffa?'You are the last one standing.':`Your team is the last team standing, with ${out} of you still on your feet.`):(G.ffa?'You went down. Someone else takes the mansion.':'Your whole team is down. Another team takes the mansion.'))+`<br><br>Your takedowns: ${G.kills}${rkTxt}<br><span style="color:#ffe08a">+${COIN}${reward}</span>`;show('end')}
 function leave(){G.hid=null;G.hideCd=6;$('hide').classList.remove('on')}
 function ctxAct(){if(G.hid)return{t:'leave',l:'LEAVE'};let b=null,bd=1.4;for(const o of OBJ){if(!o.hide||o.f!==P.f)continue;const d=dist(P,o);if(d<bd){bd=d;b=o}}return b?{t:'hide',ref:b,l:'HIDE<br>UNDER BED'}:null}
 function doAct(){if(!G||G.over||paused||G.down)return;const a=ctxAct();if(!a)return;
