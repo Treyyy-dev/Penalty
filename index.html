@@ -553,7 +553,7 @@ h1,h2{font-family:'Creepster','Special Elite',serif;font-weight:400;margin:0;let
 
 <script>
 /* ================= AUTO-UPDATE ================= */
-const BUILD='20261122075828';
+const BUILD='20261122080618';
 function checkUpdate(){try{if(window.G&&!window.G.over)return}catch(e){}
  fetch(location.pathname+'?cb='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{const m=/const BUILD='(\d+)'/.exec(t);if(m&&m[1]>BUILD&&!(typeof G!=='undefined'&&G&&!G.over&&document.getElementById('game').classList.contains('on')))location.replace(location.pathname+'?v='+m[1])}).catch(()=>{})}
 checkUpdate();document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkUpdate()});setInterval(checkUpdate,120000);
@@ -1309,7 +1309,7 @@ function runDl(kind){const pick=a=>a.map(x=>[Math.random(),x]).sort((p,q)=>p[0]-
 if(S.dl==='full')pkLoad();
 applyDl();$('sMus').onclick=()=>{tick();if(S.dl!=='full')return;S.mus=S.mus===false;save();applyDl();music()};
 /* ================= GOOGLE ACCOUNT + CLOUD SAVE (Firebase) ================= */
-const FBCFG={apiKey:"AIzaSyDByuWRVva3XnOpREMeDO36_wUlme8D_So",authDomain:"penalty-5a953.firebaseapp.com",projectId:"penalty-5a953",storageBucket:"penalty-5a953.firebasestorage.app",messagingSenderId:"844985175145",appId:"1:844985175145:web:262a0ca9062199a514a6f8"},FBV='13.4.0';
+const FBCFG={apiKey:"AIzaSyBcICloQXC5PR-Dnm21r_z1BZHdAmVgrlg",authDomain:"penalty-de8db.firebaseapp.com",projectId:"penalty-de8db",storageBucket:"penalty-de8db.firebasestorage.app",messagingSenderId:"1050236332856",appId:"1:1050236332856:web:ecd3643c1250b196f8efcd"},FBV='13.4.0';
 const CLOUD=['souls','owned','active','wp','eq','rp','wins','name','friends','uid','ch','mode','claimed'];
 FB={m:null,auth:null,db:null,user:null,loading:null,t:0,unsub:null,msg:'',busy:false};
 function fbLoad(){return FB.loading||(FB.loading=(async()=>{const b='https://www.gstatic.com/firebasejs/'+FBV+'/firebase-',x=await Promise.all([import(b+'app.js'),import(b+'auth.js'),import(b+'firestore.js')]);
