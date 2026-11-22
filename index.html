@@ -313,6 +313,9 @@ h1,h2{font-family:'Creepster','Special Elite',serif;font-weight:400;margin:0;let
 #slash.on{animation:sl .2s ease-out}
 @keyframes sl{0%{opacity:1;transform:translate(-40%,-20%)}100%{opacity:0;transform:translate(40%,20%)}}
 
+#cdn{position:absolute;inset:0;display:none;z-index:4;pointer-events:none;align-items:center;justify-content:center;font-family:'Creepster',serif;font-size:130px;letter-spacing:4px;color:#fff;text-shadow:0 0 24px #000,0 6px 0 #000}
+#cdn.on{display:flex}#cdn.go{font-size:84px;color:#ffe08a}#cdn.pop{animation:cdPop .9s ease-out both}
+@keyframes cdPop{0%{transform:scale(1.7);opacity:0}18%{transform:scale(1);opacity:1}80%{opacity:1}100%{transform:scale(.9);opacity:.15}}
 #knock{position:absolute;inset:0;display:none;z-index:3;pointer-events:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;font-family:'Creepster',serif;font-size:40px;letter-spacing:3px;color:#ff4a4a;text-shadow:0 0 14px #000;box-shadow:inset 0 0 140px rgba(190,0,0,.75)}
 #knock.on{display:flex}
 #knock small{display:block;font-family:'Special Elite',serif;font-size:13px;letter-spacing:1px;color:#eee;margin-top:8px}
@@ -553,7 +556,7 @@ h1,h2{font-family:'Creepster','Special Elite',serif;font-weight:400;margin:0;let
 <div id="game" class="screen">
   <div id="hud"><div id="roomName"></div><div id="clock">ROUND 1</div><button class="ib" id="bMute">♪</button><button class="ib" id="bQuit">✕</button></div>
   <div id="view"><canvas id="cv" width="450" height="600"></canvas><div id="dark"></div><div id="redv"></div><div id="flash"></div><div id="xh"></div><div id="slash"></div>
-    <svg id="hands" viewBox="0 0 360 200" preserveAspectRatio="xMidYMax meet"></svg><canvas id="mini" width="123" height="84"></canvas><div id="hide"><div class="ht">HIDING — hold your breath<div id="breath"><i id="breathI"></i></div></div></div><div id="knock">YOU'RE DOWN<small>Crawl to a teammate — they can revive you</small><div id="bleed"><i id="bleedI"></i></div></div><div id="feed"></div><div id="party"></div><div id="zleft"></div></div>
+    <svg id="hands" viewBox="0 0 360 200" preserveAspectRatio="xMidYMax meet"></svg><canvas id="mini" width="123" height="84"></canvas><div id="hide"><div class="ht">HIDING — hold your breath<div id="breath"><i id="breathI"></i></div></div></div><div id="cdn"></div><div id="knock">YOU'RE DOWN<small>Crawl to a teammate — they can revive you</small><div id="bleed"><i id="bleedI"></i></div></div><div id="feed"></div><div id="party"></div><div id="zleft"></div></div>
   <div id="bottom"><div id="mid"><div id="msg"></div><div id="flT"></div><div id="fl"><i id="flI"></i></div><button id="actB"></button></div><div id="joy"><i id="knob"></i></div><div id="rt"><button id="swapB">SWAP</button><button id="abB"></button></div></div>
 </div>
 
@@ -570,7 +573,7 @@ h1,h2{font-family:'Creepster','Special Elite',serif;font-weight:400;margin:0;let
 
 <script>
 /* ================= AUTO-UPDATE ================= */
-const BUILD='20261122083635';
+const BUILD='20261122083905';
 function checkUpdate(){try{if(window.G&&!window.G.over)return}catch(e){}
  fetch(location.pathname+'?cb='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{const m=/const BUILD='(\d+)'/.exec(t);if(m&&m[1]>BUILD&&!(typeof G!=='undefined'&&G&&!G.over&&document.getElementById('game').classList.contains('on')))location.replace(location.pathname+'?v='+m[1])}).catch(()=>{})}
 checkUpdate();document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkUpdate()});setInterval(checkUpdate,120000);
@@ -1142,7 +1145,7 @@ function start(net){initAudio();if(!net||net.t!=='start'){net=null;netClose();PI
  const others=net?net.f.filter(f=>!ffa&&f.s!==you&&Math.floor(f.s/3)===Math.floor(you/3)).map(f=>{const q=spawnOf(f.s,ffa);return{c:chr(f.ch)||CH[0],x:q[0],y:q[1],gun:wpn(f.gun)?f.gun:'rifle',slot:f.s,human:!!f.h,net:!!f.h||net.host!==you}})
   :CH.filter(x=>x.id!==c.id).sort(()=>Math.random()-.5).slice(0,ffa?0:2).map((o,i)=>({c:o,x:SPAWN[0][i+1][0],y:SPAWN[0][i+1][1],gun:['rifle','shotgun'][i]}));
  P={x:p0[0],y:p0[1],f:0,a:net?Math.atan2(13.5-p0[1],20.5-p0[0]):-Math.PI/2,ph:0,turn:0,mov:0,isP:true,sc:0};
- G={net,p0,frz:0,md,ffa,rk,ab:{id:c.id,cd:0,t:0},fb:[],down:false,bleed:0,revT:0,perk:p,max:100+(p.hp?25:0),hp:100+(p.hp?25:0),sh:100,shT:0,shield:p.shield?1:0,over:false,ui:0,kills:0,rg:0,round:0,left:0,inter:2.5,zt:0,
+ G={net,p0,frz:0,md,ffa,rk,ab:{id:c.id,cd:0,t:0},fb:[],down:false,bleed:0,revT:0,perk:p,max:100+(p.hp?25:0),hp:100+(p.hp?25:0),sh:100,shT:0,shield:p.shield?1:0,over:false,ui:0,kills:0,rg:0,round:0,left:0,inter:3,zt:0,
   guns:[S.eq.g1,S.eq.g2].filter(Boolean).map(id=>{const w=wpn(id),m=Math.round(w.mag*(p.mag?1.5:1));return{w,mag:m,max:m,reload:0}}),gi:0,fcd:0,hid:null,seen:false,breath:0,bmax:15,hideCd:0,zs:[],groan:6,
   team:others.map((o,i)=>({c:o.c,x:o.x,y:o.y,x0:o.x,y0:o.y,slot:o.slot,human:o.human,net:o.net,f:0,state:'ok',hp:100,sh:100,shT:0,mode:'idle',t:1+i*1.5,ph:0,shoot:1+i*.4,rg:0,seed:i*1370,img:figSet(o.c,o.gun)}))};
  const row=(id,cls,ch,nm)=>`<div class="pr ${cls}" id="${id}"><div class="pa">${art(ch)}</div><div><div class="pn">${nm}</div><div class="ph"></div></div></div>`;
@@ -1153,7 +1156,7 @@ function hurtFx(){sfx('bad');sfx('beat');const s=$('scare');s.innerHTML='';s.cla
 function hit(dmg,txt){if(G.over||G.down)return;if(G.shield){G.shield=0;sfx('banish');say('Your charm burns hot — the bullet glances off. It won\'t work twice.');drawHud();return}
  if(G.perk.dodge&&Math.random()<.35){sfx('banish');say('You twist away — the shot goes wide.');return}
  soak(G,abOn('ivy')?dmg*.5:dmg);hurtFx();drawHud();if(G.hp<=0){G.hp=0;if(G.team.some(t=>t.state!=='down')){G.down=true;G.bleed=30;G.revT=0;$('knock').classList.add('on');say('You are DOWN. Crawl toward a teammate — they can get you back up.')}else{G.over=true;setTimeout(()=>end(false),500)}}else say(txt)}
-function end(win){G.over=true;netClose();track('matches',1);if(win)track('wins',1);track('time',Math.floor(G.tAcc||0));$('knock').classList.remove('on');$('redv').classList.remove('on');$('hide').classList.remove('on');
+function end(win){G.over=true;$('cdn').classList.remove('on','pop','go');netClose();track('matches',1);if(win)track('wins',1);track('time',Math.floor(G.tAcc||0));$('knock').classList.remove('on');$('redv').classList.remove('on');$('hide').classList.remove('on');
  const left=G.zs.filter(z=>!z.dead).length,place=G.ffa?left+1:1+[1,2,3].filter(k=>G.zs.some(z=>!z.dead&&z.team===k)).length,of=G.ffa?12:4;
  const reward=(win?300:30)+G.kills*20;S.souls+=reward;if(win)S.wins=(S.wins||0)+1;let rkTxt='';
  if(G.rk){const k=G.ffa?'ffa':'team',d=win?(G.ffa?40:30):G.ffa?(place<=3?15:place<=6?0:-15):(place===2?5:-15)+0,before=rpOf(G.md);S.rp[k]=Math.max(0,before+d+G.kills*2);rkTxt=`<br>Rank: ${rankTxt(G.md)} <span style="color:${S.rp[k]>=before?'#7dff8a':'#ff6a6a'}">(${S.rp[k]>=before?'+':''}${S.rp[k]-before})</span>`}
@@ -1196,7 +1199,7 @@ function update(dt){G.tAcc=(G.tAcc||0)+(G.down?0:dt);
  if(G.down){G.bleed-=dt;$('bleedI').style.width=Math.max(0,G.bleed/30*100)+'%';if(G.bleed<=0||!G.team.some(t=>t.state!=='down')){G.down=false;end(false);return}}
  // rounds
  const alive=G.zs.filter(z=>!z.dead&&!z.dn).length;netTick(dt);if(G.frz>0){G.frz-=dt;joy.x=joy.y=0}
- if(G.inter>0){G.inter-=dt;if(G.inter<=0)startRound();if(G._left){const q=G._left;G._left=null;q.forEach(x=>netMsg({t:'left',s:+x}))}}
+ if(G.inter>0){G.inter-=dt;joy.x=joy.y=0;{const n=Math.ceil(G.inter),e=$('cdn');if(n!==G.cdn){G.cdn=n;e.classList.remove('pop');void e.offsetWidth;e.textContent=n>0?n:'START';e.classList.toggle('go',n<=0);e.classList.add('on','pop');sfx(n>0?'tick':'rare');if(n<=0)setTimeout(()=>e.classList.remove('on','pop','go'),900)}}if(G.inter<=0)startRound();if(G._left){const q=G._left;G._left=null;q.forEach(x=>netMsg({t:'left',s:+x}))}}
  else if(alive===0)endRound();
  // doors
  const ents=[...G.team,...G.zs.filter(z=>!z.dead)];for(const d of DOORS)if(!d.open&&ents.some(e=>e.f===d.f&&Math.abs(e.x-d.x-.5)<1.3&&Math.abs(e.y-d.y-.5)<1.3))setDoor(d,true);
