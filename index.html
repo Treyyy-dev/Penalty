@@ -345,6 +345,9 @@ h1,h2{font-family:'Creepster','Special Elite',serif;font-weight:400;margin:0;let
 @keyframes iLean{0%,100%{transform:skewX(-4deg)}50%{transform:skewX(4deg)}}
 @keyframes iArms{0%,100%{transform:rotate(-10deg)}50%{transform:rotate(10deg)}}
 @keyframes iTap{0%,100%{transform:scaleY(1) rotate(0)}50%{transform:scaleY(.94) rotate(3deg)}}
+.card{background:linear-gradient(160deg,#77818f,#2a2f38)!important;box-shadow:none!important}
+.card .price{position:absolute;top:8px;right:8px;font-family:Arial,sans-serif;font-size:12px;font-weight:800;color:#9fe0ff;background:rgba(0,0,0,.78);border:1px solid #2c5a70;border-radius:5px;padding:3px 7px}
+#nav button{font-size:9.5px!important;letter-spacing:.8px!important}
 </style>
 </head>
 <body>
@@ -431,7 +434,7 @@ h1,h2{font-family:'Creepster','Special Elite',serif;font-weight:400;margin:0;let
 <!-- END -->
 <div id="end" class="screen"><h1 id="endT"></h1><p id="endP"></p><button class="mbtn" id="bAgain">TRY AGAIN</button><button class="mbtn alt" id="bMenu">MAIN MENU</button></div>
 
-<div id="nav"><button data-go="gacha"><i>✦</i>GACHA</button><button data-go="chal"><i>★</i>CHALLENGES</button><button data-go="menu"><i>⌂</i>HOME</button><button data-go="coll"><i>▦</i>COLLECTION</button><button data-go="settings"><i>⚙</i>SETTINGS</button></div>
+<div id="nav"><button data-go="chal"><i>★</i>CHALLENGES</button><button data-go="menu"><i>⌂</i>HOME</button><button data-go="coll"><i>▦</i>COLLECTION</button><button data-go="settings"><i>⚙</i>SETTINGS</button></div>
 <div class="modal" id="detail"><div class="panel" id="detailP"></div></div>
 <div class="modal" id="pad"><div class="panel"><p id="padT"></p><div class="disp" id="padD"></div><div id="keys"></div><p id="padHint" class="perk"></p></div></div>
 <div id="scare"></div>
@@ -465,7 +468,7 @@ const CH=[
 let uid=0;
 function shade(hex,k){const n=parseInt(hex.slice(1),16);let r=n>>16,g=n>>8&255,b=n&255;r=Math.max(0,Math.min(255,Math.round(r*k)));g=Math.max(0,Math.min(255,Math.round(g*k)));b=Math.max(0,Math.min(255,Math.round(b*k)));return '#'+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1)}
 function art(c,bust,blink){
-  const u='a'+(uid++),R=RAR[c.r],sk=c.skin,skd=shade(sk,.78),hc=c.hair,hd=shade(hc,.6),hl=shade(hc,1.35),fc=c.fc,fd=shade(fc,.7),ac=c.ac||'#c22';
+  const u='a'+(uid++),R={c:'#3f4a5c'},sk=c.skin,skd=shade(sk,.78),hc=c.hair,hd=shade(hc,.6),hl=shade(hc,1.35),fc=c.fc,fd=shade(fc,.7),ac=c.ac||'#c22';
   const F='M58,96 C58,60 142,60 142,96 C142,132 122,158 100,161 C78,158 58,132 58,96Z';
   let s=`<svg class="art" viewBox="0 0 200 260" xmlns="http://www.w3.org/2000/svg"><defs>
 <linearGradient id="${u}b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${R.c}"/><stop offset=".75" stop-color="#0c0c12"/></linearGradient>
@@ -473,8 +476,8 @@ function art(c,bust,blink){
 <linearGradient id="${u}v" x1="0" y1="0" x2="0" y2="1"><stop offset=".6" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".75"/></linearGradient>
 <clipPath id="${u}c"><rect width="200" height="260" rx="10"/></clipPath></defs><g clip-path="url(#${u}c)">
 <rect width="200" height="260" fill="url(#${u}b)"/>`;
-  if(c.r==='SSR'){for(let i=0;i<10;i++)s+=`<path d="M100,105 L${100+260*Math.cos(i*.628)},${105+260*Math.sin(i*.628)} L${100+260*Math.cos(i*.628+.16)},${105+260*Math.sin(i*.628+.16)}Z" fill="#fff3b0" opacity=".13"/>`}
-  if(c.r==='SR')s+=`<circle cx="100" cy="100" r="86" fill="none" stroke="#e0b8ff" stroke-width="1.5" opacity=".35"/><circle cx="100" cy="100" r="96" fill="none" stroke="#e0b8ff" stroke-width=".7" opacity=".3"/>`;
+  if(false){for(let i=0;i<10;i++)s+=`<path d="M100,105 L${100+260*Math.cos(i*.628)},${105+260*Math.sin(i*.628)} L${100+260*Math.cos(i*.628+.16)},${105+260*Math.sin(i*.628+.16)}Z" fill="#fff3b0" opacity=".13"/>`}
+  if(false)s+=`<circle cx="100" cy="100" r="86" fill="none" stroke="#e0b8ff" stroke-width="1.5" opacity=".35"/><circle cx="100" cy="100" r="96" fill="none" stroke="#e0b8ff" stroke-width=".7" opacity=".3"/>`;
   s+=`<circle cx="156" cy="44" r="26" fill="#fff" opacity=".1"/><path d="M0,70 l14,-22 l10,22 M176,84 l10,-18 l14,18" stroke="#000" stroke-width="2" fill="none" opacity=".35"/>`;
   if(bust)s=`<defs><linearGradient id="${u}s" x1="0" y1="0" x2="1" y2="0"><stop offset=".45" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".42"/></linearGradient></defs><g class="bust">`;
   // back hair
@@ -541,7 +544,7 @@ function art(c,bust,blink){
   s+=bust?'</g>':`<rect width="200" height="260" fill="url(#${u}v)"/></g></svg>`;
   return s;
 }
-function card(c,opt={}){return `<div class="card ${c.r} ${opt.locked?'locked':''} ${opt.sel?'sel':''}" data-c="${c.id}">${art(c)}<span class="tag">${c.r}</span>${opt.cnt>1?`<span class="cnt">×${opt.cnt}</span>`:''}${opt.sel?'<span class="selb">SELECTED</span>':''}<span class="nm">${opt.locked?'???':c.n}</span></div>`}
+function card(c,opt={}){return `<div class="card ${opt.sel?'sel':''}" data-c="${c.id}">${art(c)}${opt.price?`<span class="price">☠ ${opt.price}</span>`:''}${opt.sel?'<span class="selb">SELECTED</span>':''}<span class="nm">${c.n}</span></div>`}
 
 /* ================= SAVE ================= */
 let S={souls:300,owned:{eli:1},active:'eli'};
@@ -574,9 +577,14 @@ $('reveal').onclick=()=>{if($('flip').classList.contains('show'))nextReveal()};
 $('pull1').onclick=()=>pull(1,100);$('pull10').onclick=()=>pull(10,900);
 
 /* ================= COLLECTION ================= */
-$('grid').onclick=e=>{const el=e.target.closest('.card');if(!el)return;if(el.dataset.w){showW(wpn(el.dataset.w));return}const c=chr(el.dataset.c),own=!!S.owned[c.id];tick();
-  $('detailP').innerHTML=(own?`<div class="duo">${card(c)}<svg class="idle i${CH.indexOf(c)}" viewBox="-4 0 208 792" xmlns="http://www.w3.org/2000/svg">${figIn(c,'ok',0,false,{hand:S.eq.g1,back:S.eq.g2})}</svg></div>`:card(c,{locked:true}))+`<h2 style="font-size:26px;color:#ddd">${own?c.n:'???'}</h2><p>${RAR[c.r].n}</p><p>${own?c.bio:'Not yet summoned. Find them in the Gacha.'}</p>${own?`<p class="perk">Ability: ${ABIL[c.id].n} — ${ABIL[c.id].d}</p>`:''}${own?`<button class="mbtn" id="dSel">${S.active===c.id?'SELECTED':'SELECT'}</button>`:''}<button class="mbtn alt" id="dClose">CLOSE</button>`;
-  $('detail').classList.add('on');$('dClose').onclick=()=>$('detail').classList.remove('on');if(own)$('dSel').onclick=()=>{S.active=c.id;save();$('detail').classList.remove('on');drawColl()}};
+const CPRICE=1500,WPRICE=800;
+function showC(c){const own=!!S.owned[c.id];
+ $('detailP').innerHTML=`<div class="duo">${card(c)}<svg class="idle i${CH.indexOf(c)}" viewBox="-4 0 208 792" xmlns="http://www.w3.org/2000/svg">${figIn(c,'ok',0,false,{hand:S.eq.g1,back:S.eq.g2})}</svg></div><h2 style="font-size:26px;color:#ddd">${c.n}</h2><p>${c.bio}</p><p class="perk">Ability: ${ABIL[c.id].n} — ${ABIL[c.id].d}</p>`+
+  (own?`<button class="mbtn" id="dSel">${S.active===c.id?'SELECTED':'SELECT'}</button>`:`<button class="mbtn" id="dBuy">BUY — ☠ ${CPRICE}</button><p id="dMsg" style="color:#9fe0ff">You have ☠ ${S.souls}</p>`)+`<button class="mbtn alt" id="dClose">CLOSE</button>`;
+ $('detail').classList.add('on');$('dClose').onclick=()=>{$('detail').classList.remove('on');drawColl()};
+ if(own)$('dSel').onclick=()=>{S.active=c.id;save();$('detail').classList.remove('on');drawColl()};
+ else $('dBuy').onclick=()=>{if(S.souls<CPRICE){sfx('bad');$('dMsg').textContent=`Not enough souls — you need ☠ ${CPRICE-S.souls} more. Win matches and claim challenges.`;return}S.souls-=CPRICE;S.owned[c.id]=1;save();initAudio();sfx('rare');showC(c)}}
+$('grid').onclick=e=>{const el=e.target.closest('.card');if(!el)return;tick();if(el.dataset.w)showW(wpn(el.dataset.w));else showC(chr(el.dataset.c))};
 
 /* ================= WEAPONS ================= */
 const WP=[
@@ -598,20 +606,21 @@ knife:`<path d="M-10,-10 L84,-6 L96,0 L-10,10Z" fill="#cfd4da" stroke="#555" str
 bat:`<path d="M-96,-7 L-40,-9 L70,-17 C98,-18 98,18 70,17 L-40,9 L-96,7Z" fill="#c9995a" stroke="#5a3d1c" stroke-width="2.5"/><rect x="-100" y="-10" width="8" height="20" rx="3" fill="#5a3d1c"/><path d="M-90,-7 v14 M-80,-7 v14 M-70,-8 v16" stroke="#222" stroke-width="4"/><path d="M40,-12 q20,10 0,24" stroke="#7a0b10" stroke-width="5" fill="none" opacity=".7"/>`,
 machete:`<path d="M-30,-14 L60,-20 C84,-20 100,-8 104,8 L-30,12Z" fill="#b9bec6" stroke="#444" stroke-width="2"/><path d="M-26,6 L98,6" stroke="#fff" opacity=".45" stroke-width="2"/><rect x="-36" y="-18" width="8" height="34" fill="#2a2d33"/><rect x="-90" y="-12" width="56" height="22" rx="7" fill="#3a2414"/><circle cx="-76" cy="-1" r="3" fill="#b9963c"/><circle cx="-52" cy="-1" r="3" fill="#b9963c"/>`,
 katana:`<path d="M-44,-4 C10,-14 70,-12 112,6 C70,0 10,2 -44,8Z" fill="#e6ebf2" stroke="#666" stroke-width="1.5"/><path d="M-40,3 C10,-6 70,-4 104,4" stroke="#9fb6d8" stroke-width="2" fill="none"/><ellipse cx="-48" cy="2" rx="6" ry="15" fill="#b9963c" stroke="#5a4310" stroke-width="2"/><rect x="-108" y="-5" width="58" height="14" rx="4" fill="#15171a"/><path d="M-100,-5 l8,14 M-88,-5 l8,14 M-76,-5 l8,14 M-64,-5 l8,14" stroke="#c9161b" stroke-width="3"/>`};
-function wArt(w){const u='w'+(uid++),R=RAR[w.r];return `<svg class="art" viewBox="0 0 200 260" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="${u}b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${R.c}"/><stop offset=".8" stop-color="#0c0c12"/></linearGradient><clipPath id="${u}c"><rect width="200" height="260" rx="10"/></clipPath></defs><g clip-path="url(#${u}c)"><rect width="200" height="260" fill="url(#${u}b)"/>${w.r==='SSR'?[0,1,2,3,4,5,6,7,8,9].map(i=>`<path d="M100,120 L${100+260*Math.cos(i*.628)},${120+260*Math.sin(i*.628)} L${100+260*Math.cos(i*.628+.16)},${120+260*Math.sin(i*.628+.16)}Z" fill="#fff3b0" opacity=".13"/>`).join(''):''}<circle cx="100" cy="118" r="78" fill="#000" opacity=".28"/><circle cx="100" cy="118" r="78" fill="none" stroke="#fff" stroke-opacity=".14" stroke-width="2"/><g transform="translate(100,120) rotate(-24) scale(.82)">${WSHAPE[w.id]}</g><text x="100" y="222" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="700" fill="#fff" opacity=".55" letter-spacing="3">${w.t==='g'?'GUN':'MELEE'}</text></g></svg>`}
+function wArt(w){const u='w'+(uid++),R={c:'#3f4a5c'};return `<svg class="art" viewBox="0 0 200 260" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="${u}b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${R.c}"/><stop offset=".8" stop-color="#0c0c12"/></linearGradient><clipPath id="${u}c"><rect width="200" height="260" rx="10"/></clipPath></defs><g clip-path="url(#${u}c)"><rect width="200" height="260" fill="url(#${u}b)"/>${false?[0,1,2,3,4,5,6,7,8,9].map(i=>`<path d="M100,120 L${100+260*Math.cos(i*.628)},${120+260*Math.sin(i*.628)} L${100+260*Math.cos(i*.628+.16)},${120+260*Math.sin(i*.628+.16)}Z" fill="#fff3b0" opacity=".13"/>`).join(''):''}<circle cx="100" cy="118" r="78" fill="#000" opacity=".28"/><circle cx="100" cy="118" r="78" fill="none" stroke="#fff" stroke-opacity=".14" stroke-width="2"/><g transform="translate(100,120) rotate(-24) scale(.82)">${WSHAPE[w.id]}</g><text x="100" y="222" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="700" fill="#fff" opacity=".55" letter-spacing="3">${w.t==='g'?'GUN':'MELEE'}</text></g></svg>`}
 const eqTag=id=>S.eq.g1===id?'IN HAND':S.eq.g2===id?'ON BACK':'';
 const loadTxt=()=>[S.eq.g1,S.eq.g2].map(i=>i&&wpn(i)?wpn(i).n:'—').join(' · ');
-function wcard(w,opt={}){const e=opt.eq&&eqTag(w.id);return `<div class="card ${w.r} ${opt.locked?'locked':''} ${e?'sel':''}" data-w="${w.id}">${wArt(w)}<span class="tag">${w.r}</span>${opt.cnt>1?`<span class="cnt">×${opt.cnt}</span>`:''}${e?`<span class="selb">${e}</span>`:''}<span class="nm">${opt.locked?'???':w.n}</span></div>`}
+function wcard(w,opt={}){const e=opt.eq&&eqTag(w.id);return `<div class="card ${e?'sel':''}" data-w="${w.id}">${wArt(w)}${opt.price?`<span class="price">☠ ${opt.price}</span>`:''}${e?`<span class="selb">${e}</span>`:''}<span class="nm">${w.n}</span></div>`}
 function equip(slot,id){if(slot==='m')S.eq.m=id;else{const o=slot==='g1'?'g2':'g1';if(S.eq[o]===id)S.eq[o]=S.eq[slot];S.eq[slot]=id;if(!S.eq.g1){S.eq.g1=S.eq.g2;S.eq.g2=null}}save()}
-function showW(w){const own=!!S.wp[w.id];tick();
- $('detailP').innerHTML=wcard(w,{locked:!own})+`<h2 style="font-size:26px;color:#ddd">${own?w.n:'???'}</h2><p>${RAR[w.r].n} · ${w.t==='g'?'Gun':'Melee'}</p><p>${own?w.d:'Not yet pulled. Find it in the Gacha.'}</p>${own?`<p class="perk">${w.t==='g'?`Damage ${w.dmg} · ${w.mag} rounds · ${w.cd<.15?'Very fast':w.cd<.3?'Fast':w.cd<.5?'Medium':'Slow'} fire`:`Damage ${w.dmg} · Reach ${w.rng} · Used automatically when a zombie is close`}</p>`:''}`+
-  (own?(w.t==='g'?`<button class="mbtn" id="e1">${S.eq.g1===w.id?'IN YOUR HAND':'EQUIP IN HAND'}</button><button class="mbtn alt" id="e2">${S.eq.g2===w.id?'ON YOUR BACK':'EQUIP ON BACK'}</button>`:`<button class="mbtn" id="em">${S.eq.m===w.id?'EQUIPPED':'EQUIP MELEE'}</button>`):'')+`<button class="mbtn alt" id="dClose">CLOSE</button>`;
+function showW(w){const own=!!S.wp[w.id];
+ $('detailP').innerHTML=wcard(w)+`<h2 style="font-size:26px;color:#ddd">${w.n}</h2><p>${w.d}</p><p class="perk">Damage ${w.dmg} · ${w.mag} rounds · ${w.cd<.15?'Very fast':w.cd<.3?'Fast':w.cd<.5?'Medium':'Slow'} fire</p>`+
+  (own?`<button class="mbtn" id="e1">${S.eq.g1===w.id?'IN YOUR HAND':'EQUIP IN HAND'}</button><button class="mbtn alt" id="e2">${S.eq.g2===w.id?'ON YOUR BACK':'EQUIP ON BACK'}</button>`:`<button class="mbtn" id="dBuy">BUY — ☠ ${WPRICE}</button><p id="dMsg" style="color:#9fe0ff">You have ☠ ${S.souls}</p>`)+`<button class="mbtn alt" id="dClose">CLOSE</button>`;
  $('detail').classList.add('on');const done=()=>{$('detail').classList.remove('on');drawColl()};$('dClose').onclick=done;
- if(own){if(w.t==='g'){$('e1').onclick=()=>{equip('g1',w.id);done()};$('e2').onclick=()=>{equip('g2',w.id);done()}}else $('em').onclick=()=>{equip('m',w.id);done()}}}
+ if(own){$('e1').onclick=()=>{equip('g1',w.id);done()};$('e2').onclick=()=>{equip('g2',w.id);done()}}
+ else $('dBuy').onclick=()=>{if(S.souls<WPRICE){sfx('bad');$('dMsg').textContent=`Not enough souls — you need ☠ ${WPRICE-S.souls} more.`;return}S.souls-=WPRICE;S.wp[w.id]=1;save();initAudio();sfx('rare');showW(w)}}
 let ctab='s';
 function drawColl(){$('tabS').classList.toggle('on',ctab==='s');$('tabW').classList.toggle('on',ctab==='w');
- if(ctab==='s'){const own=CH.filter(c=>S.owned[c.id]).length;$('cCount').textContent=own+' / '+CH.length;$('grid').innerHTML=CH.map(c=>card(c,{locked:!S.owned[c.id],sel:S.active===c.id,cnt:S.owned[c.id]})).join('');const a=chr(S.active);$('selInfo').innerHTML=`Tap a survivor to see them in full and select them.<br>Playing as <b>${a.n}</b> — ability: ${ABIL[a.id].n}`}
- else{const own=WP.filter(w=>S.wp[w.id]).length;$('cCount').textContent=own+' / '+WP.length;$('grid').innerHTML=WP.map(w=>wcard(w,{locked:!S.wp[w.id],eq:1,cnt:S.wp[w.id]})).join('');$('selInfo').innerHTML=`Tap a gun to view and equip it — one in your hand, one on your back.<br>Loadout: <b>${loadTxt()}</b>`}}
+ if(ctab==='s'){const own=CH.filter(c=>S.owned[c.id]).length;$('cCount').textContent='☠ '+S.souls;$('grid').innerHTML=CH.map(c=>card(c,{price:S.owned[c.id]?0:CPRICE,sel:S.active===c.id})).join('');const a=chr(S.active);$('selInfo').innerHTML=`${own} of ${CH.length} survivors owned · tap one to view, select or buy.<br>Playing as <b>${a.n}</b> — ability: ${ABIL[a.id].n}`}
+ else{const own=WP.filter(w=>S.wp[w.id]).length;$('cCount').textContent='☠ '+S.souls;$('grid').innerHTML=WP.map(w=>wcard(w,{price:S.wp[w.id]?0:WPRICE,eq:1})).join('');$('selInfo').innerHTML=`${own} of ${WP.length} guns owned · tap one to view, equip or buy.<br>Loadout: <b>${loadTxt()}</b>`}}
 $('chTabs').onclick=e=>{const v=e.target.dataset.v;if(v){chTab=v;tick();drawChal()}};
 $('chList').onclick=e=>{const b=e.target.closest('.cbtn');if(!b||b.disabled)return;cchk();S.ch[chTab].cl[b.dataset.i]=1;S.souls+=+b.dataset.r;save();initAudio();sfx('rare');drawChal()};
 $('tabS').onclick=()=>{ctab='s';tick();drawColl()};$('tabW').onclick=()=>{ctab='w';tick();drawColl()};
@@ -622,7 +631,7 @@ const CDEF=[['matches','Play # match',[1,6,20]],['matches','Play # matches',[3,1
  ['dmg','Deal # damage',[500,3000,12000]],['dmg','Deal # damage',[1500,8000,30000]],['dmg','Deal # damage',[3000,15000,60000]],
  ['shots','Fire # shots',[100,600,2500]],['shots','Fire # shots',[300,1500,6000]],['heads','Land # headshots',[2,12,50]],['heads','Land # headshots',[6,30,120]],
  ['doors','Open # doors',[10,60,250]],['revives','Revive # teammate',[1,6,25]],['revives','Revive # teammates',[3,15,60]],
- ['pulls','Do # gacha summon',[1,10,40]],['pulls','Do # gacha summons',[5,25,100]],['time','Stay alive # seconds in matches',[300,1800,7200]]];
+ ['abil','Use your ability # times',[3,20,80]],['abil','Use your ability # times',[8,45,160]],['time','Stay alive # seconds in matches',[300,1800,7200]]];
 const CPER=[['d','DAILY',30],['w','WEEKLY',150],['m','MONTHLY',500]];
 function ckey(p){const n=new Date(),z=x=>String(x).padStart(2,'0');if(p==='m')return n.getFullYear()+'-'+z(n.getMonth()+1);if(p==='w'){const m=new Date(n.getFullYear(),n.getMonth(),n.getDate()-((n.getDay()+6)%7));return 'w'+m.getFullYear()+'-'+z(m.getMonth()+1)+'-'+z(m.getDate())}return n.getFullYear()+'-'+z(n.getMonth()+1)+'-'+z(n.getDate())}
 function cchk(){S.ch=S.ch||{};CPER.forEach(p=>{const k=ckey(p[0]);if(!S.ch[p[0]]||S.ch[p[0]].key!==k)S.ch[p[0]]={key:k,st:{},cl:{}}})}
@@ -876,7 +885,7 @@ const ABIL={
  wren:{n:'RALLY',d:'Pick up every downed teammate and heal your team.',cd:30,dur:0},
  asher:{n:'RAPID FIRE',d:'Fire three times as fast with no reloading for 5 seconds.',cd:18,dur:5}};
 const abOn=k=>G.ab.id===k&&G.ab.t>0;
-function useAb(){if(!G||G.over||paused||G.down||G.ab.cd>0)return;const a=ABIL[G.ab.id],k=G.ab.id;G.ab.cd=a.cd;G.ab.t=a.dur;initAudio();sfx('rare');reach=1.2;
+function useAb(){if(!G||G.over||paused||G.down||G.ab.cd>0)return;const a=ABIL[G.ab.id],k=G.ab.id;G.ab.cd=a.cd;G.ab.t=a.dur;track('abil',1);initAudio();sfx('rare');reach=1.2;
  if(k==='dex'){for(let i=0;i<22;i++){const nx=P.x+Math.cos(P.a)*.2,ny=P.y+Math.sin(P.a)*.2;if(blocked(nx,ny))break;P.x=nx;P.y=ny}const f=$('flash');f.classList.remove('on');void f.offsetWidth;f.classList.add('on')}
  else if(k==='mara')G.fb.push({x:P.x+Math.cos(P.a)*.4,y:P.y+Math.sin(P.a)*.4,a:P.a,t:2.2});
  else if(k==='noah'){G.hp=Math.min(G.max,G.hp+60);G.team.forEach(t=>{if(t.state!=='down'&&dist(t,P)<7){t.hp=Math.min(100,t.hp+60);t.state=t.hp<50?'hurt':'ok'}});feed('Medic: your team is patched up.')}
