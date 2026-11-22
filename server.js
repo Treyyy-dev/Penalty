@@ -173,6 +173,17 @@ function dm(c, msg) {
   const q = waiting.get(to) || []; q.push(out); if (q.length > 30) q.shift(); waiting.set(to, q);
 }
 
+// a friend request: delivered now if they are online, otherwise held like a message
+function freq(c, msg) {
+  if (!c.name) return;
+  const to = cleanName(msg.to); if (!to || to === c.name) return;
+  const now = Date.now(); c.frs = (c.frs || []).filter(x => now - x < 60000); if (c.frs.length >= 10) return; c.frs.push(now);
+  const out = { t: 'freq', from: c.name }, s = byName.get(to);
+  if (s && s.size) { for (const x of s) send(x, out); return; }
+  if (waiting.size > 2000 && !waiting.has(to)) return;
+  const q = waiting.get(to) || []; if (!q.some(m => m.t === 'freq' && m.from === c.name)) q.push(out); if (q.length > 30) q.shift(); waiting.set(to, q);
+}
+
 /* ---------- parties: up to three friends who queue together ---------- */
 const parties = new Map(); let nextParty = 1;
 const LOOK = ['ch', 'sk', 'camo', 'g1', 'g2', 'ic', 'bd', 'bn', 'st', 'md', 'pb'];
@@ -323,6 +334,7 @@ function onMsg(c, msg) {
   if (t === 'hello') return hello(c, msg);
   if (t === 'who') return who(c, msg);
   if (t === 'dm') return dm(c, msg);
+  if (t === 'freq') return freq(c, msg);
   if (/^p(look|inv|acc|dec|leave|go|can)$/.test(t)) return party(c, t, msg);
   const r = c.room; if (!r || r.state !== 'play') return;
   if (t === 'pick') {            // character select: a player picks for themselves, the host picks for bots

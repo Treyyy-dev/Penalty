@@ -613,6 +613,7 @@ h1,h2{font-family:'Creepster','Special Elite',serif;font-weight:400;margin:0;let
     <div class="srow"><span>Sound</span><button class="sbtn" id="sSound">ON</button></div>
     <div class="srow"><span>Music</span><button class="sbtn" id="sMus">ON</button></div>
     <div class="srow"><span>FPS</span><div class="seg" id="sFps"><button data-v="30">30</button><button data-v="60">60</button><button data-v="120">120</button></div></div>
+    <div class="srow"><span>Download</span><div class="seg" id="sDl"><button data-v="full">FULL</button><button data-v="min">MIN</button></div></div>
     <div class="srow"><span>Quality</span><div class="seg" id="sQ"><button data-v="low">LOW</button><button data-v="med">MEDIUM</button><button data-v="high">HIGH</button></div></div>
     <div class="srow"><span>Motion blur</span><button class="sbtn" id="sMb">OFF</button></div>
     <p class="sub" style="padding:14px 2px">Resetting removes your souls and every survivor except Eli.</p>
@@ -645,7 +646,7 @@ h1,h2{font-family:'Creepster','Special Elite',serif;font-weight:400;margin:0;let
 /* ================= RELEASES =================
    The page that opens the game (index.html) loads one build from builds/. Players stay on
    the build the developer last released; this section notices when a newer one is released. */
-const BUILD='20261122095126';
+const BUILD='20261122100458';
 const RELS=window.REL||{build:'',content:[],latest:BUILD,dev:false};
 const FSDOC='https://firestore.googleapis.com/v1/projects/penalty-de8db/databases/(default)/documents/';
 var UPD=null;
@@ -973,7 +974,7 @@ function setMute(v){muted=v;S.muted=v;save();if(master)master.gain.value=v?0:.9;
 $('bMute').onclick=()=>setMute(!muted);$('sSound').onclick=()=>{initAudio();setMute(!muted);sfx('tick')};
 if(S.muted){muted=true;$('bMute').style.opacity=.4}
 S.fps=S.fps||60;S.q=S.q||'med';
-function drawSet(){document.querySelectorAll('#sFps button').forEach(b=>b.classList.toggle('on',+b.dataset.v===S.fps));document.querySelectorAll('#sQ button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.q));$('sMb').textContent=S.mb?'ON':'OFF'}
+function drawSet(){document.querySelectorAll('#sDl button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.dl));document.querySelectorAll('#sFps button').forEach(b=>b.classList.toggle('on',+b.dataset.v===S.fps));document.querySelectorAll('#sQ button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.q));$('sMb').textContent=S.mb?'ON':'OFF'}
 $('sFps').onclick=e=>{const v=e.target.dataset.v;if(v){S.fps=+v;save();tick();drawSet()}};$('sQ').onclick=e=>{const v=e.target.dataset.v;if(v){if(S.dl==='min'&&v!=='low'){sfx('bad');return}S.q=v;save();tick();drawSet()}};$('sMb').onclick=()=>{S.mb=!S.mb;save();tick();drawSet()};drawSet();
 
 /* ================= WORLD ================= */
@@ -1503,8 +1504,9 @@ if(!S.uid){S.uid='P'+String(Math.floor(Math.random()*1e9)).padStart(9,'0');save(
 const myName=()=>(S.name||'PLAYER'+S.uid.slice(-4)).toUpperCase().replace(/[^A-Z0-9 _-]/g,'').trim().slice(0,14)||'PLAYER'+S.uid.slice(-4);
 {let shown=false;const d=()=>{$('stId').textContent=shown?'ID '+S.uid:'USER ID · TAP TO SHOW'};d();$('stId').onclick=e=>{e.stopPropagation();shown=!shown;tick();d()}}
 const DLT={full:['FULL','Everything, with music. About 3.7 MB. Unlocks every quality setting.'],min:['MIN','Tiny download. No music, and Low quality only.']};
+$('sDl').onclick=e=>{const v=e.target.dataset.v;if(!v||v===S.dl)return;tick();if(NET.ws){sfx('bad');return}runDl(v,UPD?UPD.build:undefined)};
 function applyDl(){if(S.dl==='min'){S.q='low';S.mb=false}$('sMus').textContent=S.dl!=='full'?'FULL ONLY':S.mus===false?'OFF':'ON';document.querySelectorAll('#sQ button').forEach(b=>b.classList.toggle('lock',S.dl==='min'&&b.dataset.v!=='low'));drawSet()}
-function dlPick(first){const P=$('dlP');P.innerHTML=`<h2 style="font-size:26px;color:#ddd">${first?'CHOOSE YOUR DOWNLOAD':'SETTINGS'}</h2>`+(first?'':'<p style="font:13px Arial,sans-serif;color:#aaa;margin:6px 0 0">Download</p>')+Object.keys(DLT).map(k=>`<button class="dlOpt ${S.dl===k?'on':''}" data-k="${k}">${DLT[k][0]}<small>${DLT[k][1]}</small></button>`).join('')+(first?'':'<button class="dlOpt" id="gSign"></button><button class="dlOpt" id="devB">DEV<small>Studio. Developer only.</small></button><button class="mbtn alt" id="dlX">CLOSE</button>');
+function dlPick(first){const P=$('dlP');P.innerHTML=`<h2 style="font-size:26px;color:#ddd">${first?'CHOOSE YOUR DOWNLOAD':'SETTINGS'}</h2>`+(first?Object.keys(DLT).map(k=>`<button class="dlOpt ${S.dl===k?'on':''}" data-k="${k}">${DLT[k][0]}<small>${DLT[k][1]}</small></button>`).join('')+'<p style="font:12px Arial,sans-serif;color:#888;margin:10px 0 0">You can change this later in Settings.</p>':'')+(first?'':'<button class="dlOpt" id="gSign"></button><button class="dlOpt" id="devB">DEV<small>Studio. Developer only.</small></button><button class="mbtn alt" id="dlX">CLOSE</button>');
  $('dlM').classList.add('on');if(!first){fbDraw();fbLoad().then(fbDraw).catch(()=>{})}
  P.onclick=e=>{const b=e.target.closest('button');if(!b)return;tick();
   if(b.id==='dlX'){$('dlM').classList.remove('on');return}
@@ -1542,10 +1544,10 @@ function runDl(kind,upd){const pick=a=>a.map(x=>[Math.random(),x]).sort((p,q)=>p
    if(upd&&upd!==BUILD){const r=await fetch('builds/'+upd+'.html',{cache:'no-store'});if(!r.ok)throw new Error('http');let n=0;if(r.body&&r.body.getReader){const rd=r.body.getReader();for(;;){const x=await rd.read();if(x.done)break;n+=x.value.length;prog(Math.min(n,hsz||n))}}else n=(await r.arrayBuffer()).byteLength;base+=hsz}
    if(m)for(const f of m.full){PK.raw[f.id]=await pkGet(f.file,f.size,prog);base+=f.size}
    finish(kind)}
-  catch(e){state='fail';lbl(upd?'UPDATE FAILED — TAP TO TRY AGAIN':'DOWNLOAD FAILED — TAP TO TRY AGAIN, OR HOLD TO USE MIN')}};
+  catch(e){state='fail';lbl(upd?'UPDATE FAILED — TAP TO TRY AGAIN':'DOWNLOAD FAILED — TAP TO TRY AGAIN')}};
  let hold=null;const B=$('dlBot');
  B.onclick=()=>{if(state==='done'){if(upd){try{location.reload()}catch(e){}return}initAudio();show('menu');socConnect()}else if(state==='fail')go()};
- B.onpointerdown=()=>{clearTimeout(hold);if(state==='fail'&&!upd)hold=setTimeout(()=>{if(state==='fail')finish('min')},900)};B.onpointerup=B.onpointerleave=()=>clearTimeout(hold);
+
  go()}
 /* ================= STORE ================= */
 var SHOP=(RELS.shop||[]).filter(id=>COSM[id]);
@@ -1629,7 +1631,7 @@ if(S.dl==='full')pkLoad();
 applyDl();$('sMus').onclick=()=>{tick();if(S.dl!=='full')return;S.mus=S.mus===false;save();applyDl();music()};
 /* ================= GOOGLE ACCOUNT + CLOUD SAVE (Firebase) ================= */
 const FBCFG={apiKey:"AIzaSyBcICloQXC5PR-Dnm21r_z1BZHdAmVgrlg",authDomain:"penalty-de8db.firebaseapp.com",projectId:"penalty-de8db",storageBucket:"penalty-de8db.firebasestorage.app",messagingSenderId:"1050236332856",appId:"1:1050236332856:web:ecd3643c1250b196f8efcd"},FBV='13.4.0';
-const CLOUD=['souls','owned','active','wp','eq','rp','wins','name','friends','uid','ch','mode','claimed','cos'];
+const CLOUD=['souls','owned','active','wp','eq','rp','wins','name','friends','uid','ch','mode','claimed','cos','freqIn','freqDone','botF','botP'];
 FB={m:null,auth:null,db:null,user:null,loading:null,t:0,unsub:null,msg:'',busy:false};
 function fbLoad(){return FB.loading||(FB.loading=(async()=>{const b='https://www.gstatic.com/firebasejs/'+FBV+'/firebase-',x=await Promise.all([import(b+'app.js'),import(b+'auth.js'),import(b+'firestore.js')]);
  const app=x[0].initializeApp(FBCFG);FB.auth=x[1].getAuth(app);FB.db=x[2].getFirestore(app);FB.m=Object.assign({},x[0],x[1],x[2]);FB.m.onAuthStateChanged(FB.auth,u=>{fbUser(u)})})().catch(e=>{FB.loading=null;throw e}))}
@@ -1768,13 +1770,14 @@ function socConnect(){if(SOC.ws||typeof WebSocket==='undefined')return;let ws;tr
  ws.onmessage=ev=>{let m;try{m=JSON.parse(ev.data)}catch(e){return}
   if(partyMsg(m))return;
   if(m.t==='hi'){SOC.me=String(m.name||'')}
+  else if(m.t==='freq'&&typeof m.from==='string')freqIn(m.from)
   else if(m.t==='who'){SOC.online=m.on||{};drawFr();if($('pinvM').classList.contains('on'))openInvite(true)}
   else if(m.t==='dm'&&typeof m.from==='string'&&typeof m.text==='string'){SOC.online[m.from.slice(0,14)]=true;inboxMsg(m.from,m.text)}};
  ws.onclose=ws.onerror=()=>{if(SOC.ws===ws){SOC.ws=null;SOC.on=false;PARTY={pid:0,leader:'',members:[]};drawFr();drawParty()}}}
 function socWho(){if(S.friends.length)socSend({t:'who',names:S.friends})}
 setInterval(()=>{if(!S.dl)return;if(!SOC.ws)socConnect();else if(SOC.on){socSend({t:'ping'});socWho()}},20000);
 function chatAdd(f,me,text){const a=S.chats[f]=S.chats[f]||[];a.push([me,text]);if(a.length>60)a.shift()}
-function drawFr(){const n=Object.values(S.unread).reduce((a,b)=>a+b,0);$('bFr').innerHTML='FRIENDS'+(n?`<i>${n}</i>`:'');if(!$('fr').classList.contains('on'))return;const P=$('frP');
+function drawFr(){const n=Object.values(S.unread).reduce((a,b)=>a+b,0)+(S.freqIn||[]).length;$('bFr').innerHTML='FRIENDS'+(n?`<i>${n}</i>`:'');if(!$('fr').classList.contains('on'))return;const P=$('frP');
  if(SOC.view){const f=SOC.view;P.innerHTML=`<h2></h2><div id="frLog"></div><div id="frNote"></div><div class="frow"><input id="frIn" maxlength="200" placeholder="Message" autocomplete="off"><button id="frSend">SEND</button></div><div class="frow"><button id="frBack" style="flex:1;padding:11px">BACK</button></div>`;
   P.querySelector('h2').textContent=f;const L=$('frLog');(S.chats[f]||[]).forEach(m=>{const d=document.createElement('div');d.className='msg'+(m[0]?' me':'');d.textContent=m[1];L.appendChild(d)});L.scrollTop=L.scrollHeight;
   $('frNote').textContent=isBot(f)?(fOn(f)?'Online':'Offline'):SOC.on?(fOn(f)?'Online':(FB.user?'Offline — they get it when they next open the game.':'Offline — sign in with Google so your messages wait for them.')):'Not connected to the server.';
@@ -1785,17 +1788,33 @@ function drawFr(){const n=Object.values(S.unread).reduce((a,b)=>a+b,0);$('bFr').
    if(FB.user){$('frNote').textContent='Sending...';fbDm(f,v).then(ok=>{if(ok)sent();else{const n=$('frNote');if(n)n.textContent='Not sent — no signed-in player has that name.'}}).catch(()=>{const n=$('frNote');if(n)n.textContent='Not sent — check your connection.'});return}
    $('frNote').textContent='Not connected — message not sent.'};
   $('frSend').onclick=go;$('frIn').onkeydown=e=>{if(e.key==='Enter')go()};$('frBack').onclick=()=>{SOC.view=null;tick();drawFr()};return}
- P.innerHTML=`<h2>FRIENDS</h2><div id="frMe" style="font:12px Arial,sans-serif;color:#aaa;text-align:center"></div><div class="frow"><input id="frAdd" maxlength="14" placeholder="Type a player name" autocomplete="off"><button id="frAddB">ADD</button></div><div id="frNote"></div><div id="frList"></div><div class="frow"><button id="frX" style="flex:1;padding:11px">CLOSE</button></div>`;
+ P.innerHTML=`<h2>FRIENDS</h2><div id="frMe" style="font:12px Arial,sans-serif;color:#aaa;text-align:center"></div><div class="frow"><input id="frAdd" maxlength="14" placeholder="Type a player name" autocomplete="off"><button id="frAddB">ADD</button></div><div class="lbT" id="frTabs"><button data-t="f">FRIENDS</button><button data-t="r">REQUESTS</button><button data-t="s">SUGGESTED</button></div><div id="frNote"></div><div id="frList"></div><div class="frow"><button id="frX" style="flex:1;padding:11px">CLOSE</button></div>`;
  $('frMe').textContent='Your name: '+myName()+(SOC.on?'':' · not connected');$('frNote').textContent=SOC.note;const L=$('frList');
- if(!S.friends.length){const d=document.createElement('div');d.style.cssText='font:13px Arial,sans-serif;color:#888;text-align:center;margin-top:18px';d.textContent='No friends yet. Add someone by their player name.';L.appendChild(d)}
- S.friends.forEach(f=>{const b=document.createElement('button');b.className='fitem';b.innerHTML='<i class="dot'+(fOn(f)?' on':'')+'"></i><span></span>'+(S.unread[f]?'<em>'+S.unread[f]+'</em>':'')+'<small>'+(S.botP[f]?'PENDING':fOn(f)?'ONLINE':'OFFLINE')+'</small><b class="fx">✕</b>';b.querySelector('span').textContent=f;
+ botReqs();P.querySelectorAll('#frTabs button').forEach(b=>{b.classList.toggle('on',b.dataset.t===frTab);if(b.dataset.t==='r'&&S.freqIn.length)b.textContent='REQUESTS ('+S.freqIn.length+')'});
+ $('frTabs').onclick=e=>{const b=e.target.closest('button');if(b){tick();frTab=b.dataset.t;drawFr()}};
+ const empty=t=>{const d=document.createElement('div');d.style.cssText='font:13px Arial,sans-serif;color:#888;text-align:center;margin-top:18px';d.textContent=t;L.appendChild(d)};
+ if(frTab==='r'){const h=t=>{const d=document.createElement('div');d.className='frH';d.textContent=t;L.appendChild(d)};
+  h('RECEIVED');if(!S.freqIn.length)empty('No friend requests right now.');
+  S.freqIn.forEach(n=>{const d=document.createElement('div');d.className='fitem';d.innerHTML=`<i class="dot ${fOn(n)?'on':''}"></i><span></span><button class="piB">ACCEPT</button><button class="piB" style="background:#121216;border-color:#33333c">DECLINE</button>`;d.querySelector('span').textContent=n;
+   const [ac,dc]=d.querySelectorAll('button');ac.onclick=()=>{S.freqIn=S.freqIn.filter(x=>x!==n);S.freqDone[n]=1;if(!S.friends.includes(n)&&S.friends.length<50){S.friends.push(n);if(isBot(n))S.botF[n]=1}SOC.note=n+' is now your friend.';save();socWho();tick();drawFr()};
+   dc.onclick=()=>{S.freqIn=S.freqIn.filter(x=>x!==n);S.freqDone[n]=1;SOC.note='';save();tick();drawFr()};L.appendChild(d)});
+  h('SENT');const sent=Object.keys(S.botP);if(!sent.length)empty('No requests waiting for an answer.');
+  sent.forEach(n=>{const d=document.createElement('div');d.className='fitem';d.innerHTML='<i class="dot"></i><span></span><small>PENDING</small><button class="piB" style="background:#121216;border-color:#33333c">CANCEL</button>';d.querySelector('span').textContent=n;d.querySelector('button').onclick=()=>{delete S.botP[n];S.friends=S.friends.filter(x=>x!==n);save();tick();drawFr()};L.appendChild(d)});
+  $('frNote').textContent=SOC.note;return}
+ if(frTab==='s'){const day=Math.floor(Date.now()/864e5),sug=BOTS.filter(b=>!S.friends.includes(b.name)&&!S.freqIn.includes(b.name)).sort((a,b)=>hsh(day+S.uid+a.name)-hsh(day+S.uid+b.name)).slice(0,10);
+  sug.forEach(b=>{const d=document.createElement('div');d.className='fitem';d.innerHTML=`<i class="dot ${botOn(b.name)?'on':''}"></i><span></span><small>${RANKS[Math.min(5,Math.floor(b.rt/100))]}</small><button class="piB">ADD</button>`;d.querySelector('span').textContent=b.name;d.querySelector('button').onclick=()=>addF(b.name);L.appendChild(d)});
+  $('frNote').textContent=SOC.note;return}
+ const mine=S.friends.filter(f=>!S.botP[f]);
+ if(!mine.length){const d=document.createElement('div');d.style.cssText='font:13px Arial,sans-serif;color:#888;text-align:center;margin-top:18px';d.textContent='No friends yet. Add someone by their player name.';L.appendChild(d)}
+ mine.forEach(f=>{const b=document.createElement('button');b.className='fitem';b.innerHTML='<i class="dot'+(fOn(f)?' on':'')+'"></i><span></span>'+(S.unread[f]?'<em>'+S.unread[f]+'</em>':'')+'<small>'+(S.botP[f]?'PENDING':fOn(f)?'ONLINE':'OFFLINE')+'</small><b class="fx">✕</b>';b.querySelector('span').textContent=f;
   b.onclick=e=>{tick();if(e.target.classList.contains('fx')){S.friends=S.friends.filter(x=>x!==f);delete S.chats[f];delete S.unread[f];delete S.botP[f];delete S.botF[f];save();drawFr();return}if(S.botP[f]){SOC.note=f+' has not answered your request yet.';drawFr();return}SOC.view=f;delete S.unread[f];save();drawFr()};L.appendChild(b)});
- {const day=Math.floor(Date.now()/864e5),sug=BOTS.filter(b=>!S.friends.includes(b.name)).sort((a,b)=>hsh(day+S.uid+a.name)-hsh(day+S.uid+b.name)).slice(0,10);
-  if(sug.length){const h=document.createElement('div');h.className='frH';h.textContent='SUGGESTED';L.appendChild(h);
-   sug.forEach(b=>{const d=document.createElement('div');d.className='fitem';d.innerHTML=`<i class="dot ${botOn(b.name)?'on':''}"></i><span></span><small>${RANKS[Math.min(5,Math.floor(b.rt/100))]}</small><button class="piB">ADD</button>`;d.querySelector('span').textContent=b.name;d.querySelector('button').onclick=()=>addF(b.name);L.appendChild(d)})}}
  const add=()=>addF($('frAdd').value);
  $('frAddB').onclick=add;$('frAdd').onkeydown=e=>{if(e.key==='Enter')add()};$('frX').onclick=()=>{$('fr').classList.remove('on');SOC.note='';drawFr()}}
-function addF(v){v=String(v||'').toUpperCase().replace(/[^A-Z0-9 _-]/g,'').trim().slice(0,14);SOC.note=!v?'Type a name first.':v===myName()?'That is your own name.':S.friends.includes(v)?v+' is already on your list.':S.friends.length>=50?'Your list is full.':'';if(!SOC.note){S.friends.push(v);if(isBot(v)){S.botP[v]=Date.now();SOC.note='Friend request sent to '+v+'.'}else SOC.note='Added '+v+'.';save();socWho()}tick();drawFr()}
+S.freqIn=S.freqIn||[];S.freqDone=S.freqDone||{};var frTab='f';
+// bot players sometimes send you a friend request (up to two a day)
+function botReqs(){const day=Math.floor(Date.now()/864e5),k='d'+day;if(S.freqDone[k])return;S.freqDone[k]=1;const pick=BOTS.filter(b=>!S.friends.includes(b.name)&&!S.freqIn.includes(b.name)&&!S.freqDone[b.name]).sort((a,b)=>hsh(k+S.uid+a.name)-hsh(k+S.uid+b.name)).slice(0,hsh(k+S.uid)%3);pick.forEach(b=>S.freqIn.push(b.name));if(pick.length)save()}
+function freqIn(n){n=String(n||'').slice(0,14);if(!n||S.friends.includes(n)||S.freqIn.includes(n)||S.freqIn.length>=30)return;S.freqIn.push(n);save();sfx('get');drawFr()}
+function addF(v){v=String(v||'').toUpperCase().replace(/[^A-Z0-9 _-]/g,'').trim().slice(0,14);SOC.note=!v?'Type a name first.':v===myName()?'That is your own name.':S.friends.includes(v)?v+' is already on your list.':S.friends.length>=50?'Your list is full.':'';if(!SOC.note){S.friends.push(v);S.freqIn=S.freqIn.filter(x=>x!==v);if(isBot(v)){S.botP[v]=Date.now();SOC.note='Friend request sent to '+v+'.'}else{SOC.note='Added '+v+'.';socSend({t:'freq',to:v})}save();socWho()}tick();drawFr()}
 $('bFr').onclick=()=>{tick();SOC.view=null;SOC.note='';$('fr').classList.add('on');socConnect();socWho();drawFr()};
 $('prof').onclick=async()=>{tick();const n=prompt('Player name',S.name||'');if(n===null)return;const old=S.name;S.name=n.trim().slice(0,14);
  {let got='';try{got=await freeName(myName())}catch(e){}if(!got){S.name=old;alert('Could not set that name. Try another one.');return}if(got!==myName()){S.name=got;alert('That name is taken, so you are '+got+'.')}}
