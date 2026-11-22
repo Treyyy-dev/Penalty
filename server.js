@@ -216,6 +216,11 @@ function onMsg(c, msg) {
   if (t === 'who') return who(c, msg);
   if (t === 'dm') return dm(c, msg);
   const r = c.room; if (!r || r.state !== 'play') return;
+  if (t === 'pick') {            // character select: a player picks for themselves, the host picks for bots
+    if (!CHARS.includes(msg.ch)) return;
+    const bot = Number.isInteger(msg.s) && msg.s >= 0 && msg.s < CAP && !bySlot(r, msg.s);
+    return others(r, c, { t: 'pick', s: r.host === c && bot ? msg.s : c.slot, ch: msg.ch });
+  }
   if (t === 'st') { msg.s = c.slot; return others(r, c, msg); }
   if (t === 'bots') { if (r.host === c) others(r, c, msg); return; }
   if (t === 'hit' || t === 'rev' || t === 'frz') { const to = bySlot(r, msg.to); if (to && to !== c) { msg.from = c.slot; send(to, msg); } return; }
