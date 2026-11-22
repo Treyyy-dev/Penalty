@@ -157,6 +157,48 @@
      "mansion"
     ]
    }
+  },
+  {
+   "id": "20261122094241",
+   "note": "Other players' camos now animate in matches",
+   "html": 230791,
+   "packs": "928f7abf385a",
+   "packBytes": 3688690,
+   "content": {
+    "ch": [
+     "eli",
+     "june",
+     "dex",
+     "mara",
+     "noah",
+     "sloane",
+     "ivy",
+     "kai",
+     "wren",
+     "asher",
+     "zane",
+     "luna",
+     "rex",
+     "nova",
+     "omar",
+     "tess",
+     "jax",
+     "yuki",
+     "cole",
+     "sage"
+    ],
+    "wp": [
+     "pistol",
+     "revolver",
+     "smg",
+     "shotgun",
+     "rifle",
+     "sniper"
+    ],
+    "map": [
+     "mansion"
+    ]
+   }
   }
  ]
 }
