@@ -503,7 +503,7 @@ h1,h2{font-family:'Creepster','Special Elite',serif;font-weight:400;margin:0;let
 
 <script>
 /* ================= AUTO-UPDATE ================= */
-const BUILD='20261122073232';
+const BUILD='20261122073412';
 function checkUpdate(){try{if(window.G&&!window.G.over)return}catch(e){}
  fetch(location.pathname+'?cb='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{const m=/const BUILD='(\d+)'/.exec(t);if(m&&m[1]>BUILD&&!(typeof G!=='undefined'&&G&&!G.over&&document.getElementById('game').classList.contains('on')))location.replace(location.pathname+'?v='+m[1])}).catch(()=>{})}
 checkUpdate();document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkUpdate()});setInterval(checkUpdate,120000);
@@ -1013,11 +1013,11 @@ function ready(){initAudio();show('menu');$('modeList').classList.remove('on');
  B.onclick=()=>{if(done)return;fin();netClose()};
  let ws;try{ws=new WebSocket(wsUrl())}catch(e){off('Online play is not available here. Open the game from its own site.');return}
  NET.ws=ws;NET.on=false;const c=chr(S.active);
- const t1=setTimeout(()=>{if(!done&&ws.readyState!==1)T.textContent='Connecting... the first match can take up to a minute.'},4000);
+ const t1=0;
  const t2=setTimeout(()=>{if(!done&&ws.readyState!==1){off('Could not reach the server. Check your connection and try again.')}},75000);
- ws.onopen=()=>{ws.send(JSON.stringify({t:'join',mode:S.mode||'team',ch:c.id,gun:S.eq.g1}));T.textContent='Looking for players...'};
+ ws.onopen=()=>{ws.send(JSON.stringify({t:'join',mode:S.mode||'team',ch:c.id,gun:S.eq.g1}));T.textContent='Connecting...'};
  ws.onmessage=ev=>{let m;try{m=JSON.parse(ev.data)}catch(e){return}
-  if(m.t==='lobby'){endAt=Date.now()+m.ms;n=m.n;const up=()=>{if(!done)T.textContent=`${n} player${n>1?'s':''} found — starting in ${Math.max(0,Math.ceil((endAt-Date.now())/1000))}s`};up();clearInterval(tick);tick=setInterval(up,500)}
+  if(m.t==='lobby'){}
   else if(m.t==='start'){fin();NET.on=true;NET.slot=m.you;NET.host=m.host;start(m)}
   else netMsg(m)};
  ws.onerror=()=>{if(!done)off('Could not connect to the server.')};
