@@ -30,6 +30,11 @@ service cloud.firestore {
       allow read: if true;
       allow write: if isDev();
     }
+    // mail the developer sends to every player
+    match /mail/{id} {
+      allow read: if true;
+      allow write: if isDev();
+    }
     match /config/release {
       allow read: if true;
       allow write: if isDev();
