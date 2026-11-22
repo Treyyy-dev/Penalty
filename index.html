@@ -20,7 +20,7 @@
   var rel=null,idx=null;
   try{var d=await json('https://firestore.googleapis.com/v1/projects/'+PID+'/databases/(default)/documents/config/release',5000);
     if(d===404)rel={build:'',content:[]};
-    else if(d&&d.fields){rel={build:(d.fields.build||{}).stringValue||'',content:((((d.fields.content||{}).arrayValue||{}).values)||[]).map(function(v){return v.stringValue||''})};set('penalty_rel',JSON.stringify(rel))}
+    else if(d&&d.fields){var arr=function(k){return ((((d.fields[k]||{}).arrayValue||{}).values)||[]).map(function(v){return v.stringValue||''})};rel={build:(d.fields.build||{}).stringValue||'',content:arr('content'),shop:arr('shop')};set('penalty_rel',JSON.stringify(rel))}
   }catch(e){try{rel=JSON.parse(get('penalty_rel'))}catch(e2){}}
   try{idx=await json('builds/index.json',8000)}catch(e){}
   var ids=idx&&idx.builds&&idx.builds.map?idx.builds.map(function(b){return b.id}):[],latest=ids[ids.length-1]||'';
@@ -32,7 +32,7 @@
   if(rel&&!released&&!dev)set('penalty_cur',latest);
   if(!target){document.getElementById('m').textContent='Could not load the game. Tap to try again.';document.body.onclick=function(){location.reload()};return}
   try{var r=await fetch('builds/'+target+'.html',{cache:'no-cache'});if(!r.ok)throw new Error('http');var html=await r.text();
-    var REL={build:released,content:rel&&rel.content||[],latest:latest,dev:dev};
+    var REL={build:released,content:rel&&rel.content||[],shop:rel&&rel.shop||[],latest:latest,dev:dev};
     html=html.replace('<script>','<script>window.REL='+JSON.stringify(REL).replace(/</g,'\\u003c')+';<\/script><script>');
     document.open();document.write(html);document.close();
   }catch(e){document.getElementById('m').textContent='Could not load the game. Tap to try again.';document.body.onclick=function(){location.reload()}}

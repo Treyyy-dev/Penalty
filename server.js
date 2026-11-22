@@ -181,6 +181,10 @@ function join(c, msg) {
   const mode = MODES.includes(msg.mode) ? msg.mode : 'team';
   c.ch = okId(msg.ch) ? msg.ch : 'eli';
   c.gun = typeof msg.gun === 'string' ? msg.gun.slice(0, 16) : 'pistol';
+  // cosmetics other players should see: the gun camo and the skin worn per character
+  c.camo = okId(msg.camo) || /^[a-z0-9_]{2,24}$/.test(msg.camo || '') ? String(msg.camo) : '';
+  c.skins = {};
+  if (msg.skins && typeof msg.skins === 'object') for (const k of Object.keys(msg.skins).slice(0, 30)) if (okId(k) && /^[a-z0-9_]{2,24}$/.test(String(msg.skins[k]))) c.skins[k] = String(msg.skins[k]);
   let r = null;
   for (const x of rooms.values()) if (x.mode === mode && x.state === 'wait' && x.members.length < CAP) { r = x; break; }
   if (!r) {
@@ -198,7 +202,7 @@ function startRoom(r) {
   r.state = 'play';
   const ffa = r.mode.includes('ffa');
   const f = [];
-  r.members.forEach((m, i) => { m.slot = i; f.push({ s: i, h: 1, ch: m.ch, gun: m.gun }); });
+  r.members.forEach((m, i) => { m.slot = i; f.push({ s: i, h: 1, ch: m.ch, gun: m.gun, camo: m.camo || '', skins: m.skins || {} }); });
   for (let s = r.members.length; s < CAP; s++) {
     f.push({ s, h: 0, ch: CHARS[Math.floor(Math.random() * CHARS.length)], gun: GUNS[s % GUNS.length] });
   }
