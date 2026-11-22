@@ -553,7 +553,7 @@ h1,h2{font-family:'Creepster','Special Elite',serif;font-weight:400;margin:0;let
 
 <script>
 /* ================= AUTO-UPDATE ================= */
-const BUILD='20261122074952';
+const BUILD='20261122075828';
 function checkUpdate(){try{if(window.G&&!window.G.over)return}catch(e){}
  fetch(location.pathname+'?cb='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{const m=/const BUILD='(\d+)'/.exec(t);if(m&&m[1]>BUILD&&!(typeof G!=='undefined'&&G&&!G.over&&document.getElementById('game').classList.contains('on')))location.replace(location.pathname+'?v='+m[1])}).catch(()=>{})}
 checkUpdate();document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkUpdate()});setInterval(checkUpdate,120000);
@@ -666,7 +666,8 @@ function card(c,opt={}){return `<div class="card ${opt.sel?'sel':''}" data-c="${
 /* ================= SAVE ================= */
 let S={souls:300,owned:{eli:1},active:'eli'};
 try{const t=JSON.parse(localStorage.getItem('marrowhouse')||'null');if(t&&t.owned)S=t}catch(e){}
-function save(){try{localStorage.setItem('marrowhouse',JSON.stringify(S))}catch(e){}}
+function saveLocal(){try{localStorage.setItem('marrowhouse',JSON.stringify(S))}catch(e){}}
+var FB=null;function save(){saveLocal();if(FB&&FB.user){clearTimeout(FB.t);FB.t=setTimeout(fbPush,4000)}}
 S.wp=S.wp||{};['pistol','rifle'].forEach(k=>S.wp[k]=S.wp[k]||1);S.eq=S.eq||{g1:'pistol',g2:'rifle'};
 const $=id=>document.getElementById(id);
 const fixEq=()=>{const ok=i=>i&&WP.some(w=>w.id===i)&&S.wp[i];if(!ok(S.eq.g1))S.eq.g1='pistol';if(!ok(S.eq.g2)||S.eq.g2===S.eq.g1)S.eq.g2=S.eq.g1==='rifle'?'pistol':(ok(S.eq.g2)&&S.eq.g2!==S.eq.g1?S.eq.g2:'rifle')};
@@ -1266,11 +1267,11 @@ const myName=()=>(S.name||'PLAYER'+S.uid.slice(-4)).toUpperCase().replace(/[^A-Z
 {let shown=false;const d=()=>{$('stId').textContent=shown?'ID '+S.uid:'USER ID · TAP TO SHOW'};d();$('stId').onclick=e=>{e.stopPropagation();shown=!shown;tick();d()}}
 const DLT={full:['FULL','Everything, with music. About 3.7 MB. Unlocks every quality setting.'],min:['MIN','Tiny download. No music, and Low quality only.']};
 function applyDl(){if(S.dl==='min'){S.q='low';S.mb=false}$('sMus').textContent=S.dl!=='full'?'FULL ONLY':S.mus===false?'OFF':'ON';document.querySelectorAll('#sQ button').forEach(b=>b.classList.toggle('lock',S.dl==='min'&&b.dataset.v!=='low'));drawSet()}
-function dlPick(first){const P=$('dlP');P.innerHTML=`<h2 style="font-size:26px;color:#ddd">${first?'CHOOSE YOUR DOWNLOAD':'SETTINGS'}</h2>`+(first?'':'<p style="font:13px Arial,sans-serif;color:#aaa;margin:6px 0 0">Download</p>')+Object.keys(DLT).map(k=>`<button class="dlOpt ${S.dl===k?'on':''}" data-k="${k}">${DLT[k][0]}<small>${DLT[k][1]}</small></button>`).join('')+(first?'':'<button class="dlOpt" id="gSign">SIGN IN WITH GOOGLE<small id="gSignT">Keep your account on any device.</small></button><button class="mbtn alt" id="dlX">CLOSE</button>');
- $('dlM').classList.add('on');
+function dlPick(first){const P=$('dlP');P.innerHTML=`<h2 style="font-size:26px;color:#ddd">${first?'CHOOSE YOUR DOWNLOAD':'SETTINGS'}</h2>`+(first?'':'<p style="font:13px Arial,sans-serif;color:#aaa;margin:6px 0 0">Download</p>')+Object.keys(DLT).map(k=>`<button class="dlOpt ${S.dl===k?'on':''}" data-k="${k}">${DLT[k][0]}<small>${DLT[k][1]}</small></button>`).join('')+(first?'':'<button class="dlOpt" id="gSign"></button><button class="mbtn alt" id="dlX">CLOSE</button>');
+ $('dlM').classList.add('on');if(!first){fbDraw();fbLoad().then(fbDraw).catch(()=>{})}
  P.onclick=e=>{const b=e.target.closest('button');if(!b)return;tick();
   if(b.id==='dlX'){$('dlM').classList.remove('on');return}
-  if(b.id==='gSign'){$('gSignT').textContent='Google sign-in is not set up yet.';return}
+  if(b.id==='gSign'){fbSign();return}
   const k=b.dataset.k;if(!k)return;$('dlM').classList.remove('on');if(k===S.dl&&!first)return;runDl(k)}}
 $('stSet').onclick=e=>{e.stopPropagation();tick();dlPick(false)};
 const TIPS=['Keep your reticle on an enemy and your gun fires by itself.','Your shield comes back if you stay out of fights for a few seconds.','Tap a door to open it. Closed doors block shots.','A knocked teammate can be revived — stand next to them.','Your spare gun is on your back. Swap when the first one runs dry.','Every survivor has their own ability button. Use it early and often.','Hide under the bed in the bedroom to break line of sight.','Win matches and claim challenges to earn coins.','Shotguns hit everyone under your aim up close.','In Team modes the first three players to join are on the same team.'];
@@ -1307,6 +1308,36 @@ function runDl(kind){const pick=a=>a.map(x=>[Math.random(),x]).sort((p,q)=>p[0]-
  go()}
 if(S.dl==='full')pkLoad();
 applyDl();$('sMus').onclick=()=>{tick();if(S.dl!=='full')return;S.mus=S.mus===false;save();applyDl();music()};
+/* ================= GOOGLE ACCOUNT + CLOUD SAVE (Firebase) ================= */
+const FBCFG={apiKey:"AIzaSyDByuWRVva3XnOpREMeDO36_wUlme8D_So",authDomain:"penalty-5a953.firebaseapp.com",projectId:"penalty-5a953",storageBucket:"penalty-5a953.firebasestorage.app",messagingSenderId:"844985175145",appId:"1:844985175145:web:262a0ca9062199a514a6f8"},FBV='13.4.0';
+const CLOUD=['souls','owned','active','wp','eq','rp','wins','name','friends','uid','ch','mode','claimed'];
+FB={m:null,auth:null,db:null,user:null,loading:null,t:0,unsub:null,msg:'',busy:false};
+function fbLoad(){return FB.loading||(FB.loading=(async()=>{const b='https://www.gstatic.com/firebasejs/'+FBV+'/firebase-',x=await Promise.all([import(b+'app.js'),import(b+'auth.js'),import(b+'firestore.js')]);
+ const app=x[0].initializeApp(FBCFG);FB.auth=x[1].getAuth(app);FB.db=x[2].getFirestore(app);FB.m=Object.assign({},x[0],x[1],x[2]);FB.m.onAuthStateChanged(FB.auth,u=>{fbUser(u)})})().catch(e=>{FB.loading=null;throw e}))}
+const fbTxt=()=>FB.user?['SIGNED IN','As '+(FB.user.email||FB.user.displayName||'your Google account')+'. Your progress is saved online. Tap to sign out.']:['SIGN IN WITH GOOGLE',FB.msg||'Save your progress and keep it on any device.'];
+function fbDraw(){const b=$('gSign');if(b){const t=fbTxt();b.innerHTML=t[0]+'<small></small>';b.lastChild.textContent=t[1]}}
+function fbPush(){if(!FB.user||!FB.m)return Promise.resolve();const d={at:Date.now()};for(const k of CLOUD)if(S[k]!==undefined)d[k]=S[k];return FB.m.setDoc(FB.m.doc(FB.db,'users',FB.user.uid),d).catch(()=>{})}
+// a name belongs to whoever holds names/NAME; returns false when someone else has it
+async function fbName(n){const m=FB.m,u=FB.user;if(!u)return true;const ref=m.doc(FB.db,'names',n),sn=await m.getDoc(ref);
+ if(sn.exists()){if(sn.data().uid!==u.uid)return false}else{try{await m.setDoc(ref,{uid:u.uid})}catch(e){return false}}
+ if(S.claimed&&S.claimed!==n)m.deleteDoc(m.doc(FB.db,'names',S.claimed)).catch(()=>{});S.claimed=n;return true}
+async function fbUser(u){FB.user=u;if(FB.unsub){try{FB.unsub()}catch(e){}FB.unsub=null}S.gsi=!!u;saveLocal();FB.busy=false;fbDraw();if(!u)return;
+ try{const m=FB.m,sn=await m.getDoc(m.doc(FB.db,'users',u.uid));
+  if(sn.exists()){const d=sn.data();for(const k of CLOUD)if(d[k]!==undefined)S[k]=d[k];S.friends=S.friends||[];fixEq()}
+  if(!(await fbName(myName()))){S.name='';await fbName(myName())}
+  saveLocal();await fbPush();
+  FB.unsub=m.onSnapshot(m.collection(FB.db,'users',u.uid,'inbox'),q=>{q.docChanges().forEach(c=>{if(c.type!=='added')return;const d=c.doc.data()||{};inboxMsg(String(d.from||''),String(d.text||''));m.deleteDoc(c.doc.ref).catch(()=>{})})},()=>{});
+  drawMenu();drawMode();applyDl();drawFr();if(SOC.on)socSend({t:'hello',uid:S.uid,name:myName()})}
+ catch(e){FB.msg='Signed in, but your saved progress could not be loaded.';fbDraw()}}
+function fbSign(){if(FB.busy)return;
+ if(!FB.m){FB.msg='Getting sign-in ready... tap again in a moment.';fbDraw();fbLoad().then(()=>{FB.msg='';fbDraw()}).catch(()=>{FB.msg='Google sign-in could not load here. Check your connection.';fbDraw()});return}
+ FB.busy=true;FB.msg='';
+ if(FB.user){fbPush().then(()=>FB.m.signOut(FB.auth)).catch(()=>{}).then(()=>{FB.busy=false;fbDraw()});return}
+ FB.m.signInWithPopup(FB.auth,new FB.m.GoogleAuthProvider()).catch(e=>{FB.busy=false;const c=e&&e.code||'';FB.msg=c==='auth/popup-closed-by-user'||c==='auth/cancelled-popup-request'?'Sign-in was cancelled.':c==='auth/unauthorized-domain'?'This site is not on the allowed list in Firebase yet.':'Sign-in did not work'+(c?' ('+c+')':'')+'. If you opened the game from your home screen, try it in your browser.';fbDraw()})}
+async function fbDm(to,text){const m=FB.m,sn=await m.getDoc(m.doc(FB.db,'names',to));if(!sn.exists())return false;await m.addDoc(m.collection(FB.db,'users',sn.data().uid,'inbox'),{from:myName(),fromUid:FB.user.uid,text,at:Date.now()});return true}
+function inboxMsg(f,text){f=f.slice(0,14);text=text.slice(0,200);if(!f||!text||!S.friends.includes(f))return;chatAdd(f,0,text);if(SOC.view!==f||!$('fr').classList.contains('on'))S.unread[f]=(S.unread[f]||0)+1;save();sfx('get');drawFr()}
+if(S.gsi)fbLoad().catch(()=>{});
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&FB.user){clearTimeout(FB.t);fbPush()}});
 /* ---- friends and chat ---- */
 S.friends=S.friends||[];S.chats=S.chats||{};S.unread=S.unread||{};
 const SOC={ws:null,on:false,online:{},view:null,note:''};
@@ -1315,7 +1346,7 @@ function socConnect(){if(SOC.ws||typeof WebSocket==='undefined')return;let ws;tr
  ws.onopen=()=>{SOC.on=true;socSend({t:'hello',uid:S.uid,name:myName()});socWho();drawFr()};
  ws.onmessage=ev=>{let m;try{m=JSON.parse(ev.data)}catch(e){return}
   if(m.t==='who'){SOC.online=m.on||{};drawFr()}
-  else if(m.t==='dm'&&typeof m.from==='string'&&typeof m.text==='string'){const f=m.from.slice(0,14);if(!S.friends.includes(f))return;chatAdd(f,0,m.text.slice(0,200));if(SOC.view!==f||!$('fr').classList.contains('on'))S.unread[f]=(S.unread[f]||0)+1;SOC.online[f]=true;save();sfx('get');drawFr()}};
+  else if(m.t==='dm'&&typeof m.from==='string'&&typeof m.text==='string'){SOC.online[m.from.slice(0,14)]=true;inboxMsg(m.from,m.text)}};
  ws.onclose=ws.onerror=()=>{if(SOC.ws===ws){SOC.ws=null;SOC.on=false;drawFr()}}}
 function socWho(){if(S.friends.length)socSend({t:'who',names:S.friends})}
 setInterval(()=>{if(!S.dl)return;if(!SOC.ws)socConnect();else if(SOC.on){socSend({t:'ping'});socWho()}},20000);
@@ -1323,8 +1354,12 @@ function chatAdd(f,me,text){const a=S.chats[f]=S.chats[f]||[];a.push([me,text]);
 function drawFr(){const n=Object.values(S.unread).reduce((a,b)=>a+b,0);$('bFr').innerHTML='FRIENDS'+(n?`<i>${n}</i>`:'');if(!$('fr').classList.contains('on'))return;const P=$('frP');
  if(SOC.view){const f=SOC.view;P.innerHTML=`<h2></h2><div id="frLog"></div><div id="frNote"></div><div class="frow"><input id="frIn" maxlength="200" placeholder="Message" autocomplete="off"><button id="frSend">SEND</button></div><div class="frow"><button id="frBack" style="flex:1;padding:11px">BACK</button></div>`;
   P.querySelector('h2').textContent=f;const L=$('frLog');(S.chats[f]||[]).forEach(m=>{const d=document.createElement('div');d.className='msg'+(m[0]?' me':'');d.textContent=m[1];L.appendChild(d)});L.scrollTop=L.scrollHeight;
-  $('frNote').textContent=SOC.on?(SOC.online[f]?'Online':'Offline — they get it when they next open the game, if the server has not restarted.'):'Not connected to the server.';
-  const go=()=>{const v=$('frIn').value.trim().slice(0,200);if(!v)return;if(!SOC.on){$('frNote').textContent='Not connected — message not sent.';return}socSend({t:'dm',to:f,text:v});chatAdd(f,1,v);save();drawFr();const x=$('frIn');if(x)x.focus()};
+  $('frNote').textContent=SOC.on?(SOC.online[f]?'Online':(FB.user?'Offline — they get it when they next open the game.':'Offline — sign in with Google so your messages wait for them.')):'Not connected to the server.';
+  const sent=()=>{chatAdd(f,1,v_);save();drawFr();const x=$('frIn');if(x)x.focus()};let v_='';
+  const go=()=>{const v=$('frIn').value.trim().slice(0,200);if(!v)return;v_=v;
+   if(SOC.on&&(SOC.online[f]||!FB.user)){socSend({t:'dm',to:f,text:v});sent();return}
+   if(FB.user){$('frNote').textContent='Sending...';fbDm(f,v).then(ok=>{if(ok)sent();else{const n=$('frNote');if(n)n.textContent='Not sent — no signed-in player has that name.'}}).catch(()=>{const n=$('frNote');if(n)n.textContent='Not sent — check your connection.'});return}
+   $('frNote').textContent='Not connected — message not sent.'};
   $('frSend').onclick=go;$('frIn').onkeydown=e=>{if(e.key==='Enter')go()};$('frBack').onclick=()=>{SOC.view=null;tick();drawFr()};return}
  P.innerHTML=`<h2>FRIENDS</h2><div id="frMe" style="font:12px Arial,sans-serif;color:#aaa;text-align:center"></div><div class="frow"><input id="frAdd" maxlength="14" placeholder="Type a player name" autocomplete="off"><button id="frAddB">ADD</button></div><div id="frNote"></div><div id="frList"></div><div class="frow"><button id="frX" style="flex:1;padding:11px">CLOSE</button></div>`;
  $('frMe').textContent='Your name: '+myName()+(SOC.on?'':' · not connected');$('frNote').textContent=SOC.note;const L=$('frList');
@@ -1334,7 +1369,9 @@ function drawFr(){const n=Object.values(S.unread).reduce((a,b)=>a+b,0);$('bFr').
  const add=()=>{const v=$('frAdd').value.toUpperCase().replace(/[^A-Z0-9 _-]/g,'').trim().slice(0,14);SOC.note=!v?'Type a name first.':v===myName()?'That is your own name.':S.friends.includes(v)?v+' is already on your list.':S.friends.length>=50?'Your list is full.':'';if(!SOC.note){S.friends.push(v);save();SOC.note='Added '+v+'.';socWho()}tick();drawFr()};
  $('frAddB').onclick=add;$('frAdd').onkeydown=e=>{if(e.key==='Enter')add()};$('frX').onclick=()=>{$('fr').classList.remove('on');SOC.note='';drawFr()}}
 $('bFr').onclick=()=>{tick();SOC.view=null;SOC.note='';$('fr').classList.add('on');socConnect();socWho();drawFr()};
-$('prof').onclick=()=>{tick();const n=prompt('Player name',S.name||'');if(n!==null){S.name=n.trim().slice(0,14);save();drawMenu();if(SOC.on)socSend({t:'hello',uid:S.uid,name:myName()})}};const evLock=e=>{sfx('bad');const b=e.currentTarget,t=b.innerHTML;if(b.dataset.t)return;b.dataset.t=1;b.lastChild.textContent=b.id==='navEv'?'LOCKED':'🔒 LOCKED';setTimeout(()=>{b.innerHTML=t;delete b.dataset.t},900)};$('navEv').onclick=evLock;$('chEv').onclick=evLock;$('bPlay').onclick=ready;$('bAgain').onclick=ready;$('bMenu').onclick=()=>show('menu');
+$('prof').onclick=async()=>{tick();const n=prompt('Player name',S.name||'');if(n===null)return;const old=S.name;S.name=n.trim().slice(0,14);
+ if(FB.user){let ok=false;try{ok=await fbName(myName())}catch(e){}if(!ok){S.name=old;alert('That name is taken. Try another one.');return}}
+ save();drawMenu();if(SOC.on)socSend({t:'hello',uid:S.uid,name:myName()})};const evLock=e=>{sfx('bad');const b=e.currentTarget,t=b.innerHTML;if(b.dataset.t)return;b.dataset.t=1;b.lastChild.textContent=b.id==='navEv'?'LOCKED':'🔒 LOCKED';setTimeout(()=>{b.innerHTML=t;delete b.dataset.t},900)};$('navEv').onclick=evLock;$('chEv').onclick=evLock;$('bPlay').onclick=ready;$('bAgain').onclick=ready;$('bMenu').onclick=()=>show('menu');
 $('bQuit').onclick=()=>{netClose();if(G)G.over=true;$('redv').classList.remove('on');$('hide').classList.remove('on');$('knock').classList.remove('on');show('menu')};
 /* game icon: Asher Vale */
 (function(){try{const svg=art(chr('asher')).replace('class="art"','width="256" height="333"'),uri='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
