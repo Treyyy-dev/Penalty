@@ -1207,6 +1207,48 @@
      "mansion"
     ]
    }
+  },
+  {
+   "id": "20261122115414",
+   "note": "3D look: rounder shading, rim light, metal shine on guns, arms and guns cast shadows; faces stay clean",
+   "html": 289080,
+   "packs": "928f7abf385a",
+   "packBytes": 3688690,
+   "content": {
+    "ch": [
+     "eli",
+     "june",
+     "dex",
+     "mara",
+     "noah",
+     "sloane",
+     "ivy",
+     "kai",
+     "wren",
+     "asher",
+     "zane",
+     "luna",
+     "rex",
+     "nova",
+     "omar",
+     "tess",
+     "jax",
+     "yuki",
+     "cole",
+     "sage"
+    ],
+    "wp": [
+     "pistol",
+     "revolver",
+     "smg",
+     "shotgun",
+     "rifle",
+     "sniper"
+    ],
+    "map": [
+     "mansion"
+    ]
+   }
   }
  ]
 }
