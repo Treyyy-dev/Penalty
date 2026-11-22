@@ -441,6 +441,11 @@ h1,h2{font-family:'Creepster','Special Elite',serif;font-weight:400;margin:0;let
 </div>
 
 <script>
+/* ================= AUTO-UPDATE ================= */
+const BUILD='20261122064436';
+function checkUpdate(){try{if(window.G&&!window.G.over)return}catch(e){}
+ fetch(location.pathname+'?cb='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{const m=/const BUILD='(\d+)'/.exec(t);if(m&&m[1]>BUILD&&!(typeof G!=='undefined'&&G&&!G.over&&document.getElementById('game').classList.contains('on')))location.replace(location.pathname+'?v='+m[1])}).catch(()=>{})}
+checkUpdate();document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkUpdate()});setInterval(checkUpdate,120000);
 /* ================= CHARACTERS ================= */
 const RAR={C:{c:'#56606b',n:'Common'},R:{c:'#2463a8',n:'Rare'},SR:{c:'#6a2bb5',n:'Super Rare'},SSR:{c:'#b9791a',n:'Legendary'}};
 const CH=[
