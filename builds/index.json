@@ -1,48 +1,6 @@
 {
  "builds": [
   {
-   "id": "20261122093801",
-   "note": "Camos redone with detailed patterns; every camo is now animated and costs 3000",
-   "html": 229711,
-   "packs": "928f7abf385a",
-   "packBytes": 3688690,
-   "content": {
-    "ch": [
-     "eli",
-     "june",
-     "dex",
-     "mara",
-     "noah",
-     "sloane",
-     "ivy",
-     "kai",
-     "wren",
-     "asher",
-     "zane",
-     "luna",
-     "rex",
-     "nova",
-     "omar",
-     "tess",
-     "jax",
-     "yuki",
-     "cole",
-     "sage"
-    ],
-    "wp": [
-     "pistol",
-     "revolver",
-     "smg",
-     "shotgun",
-     "rifle",
-     "sniper"
-    ],
-    "map": [
-     "mansion"
-    ]
-   }
-  },
-  {
    "id": "20261122094241",
    "note": "Other players' camos now animate in matches",
    "html": 230791,
@@ -1222,6 +1180,48 @@
    "id": "20261122125255",
    "note": "3D chests pop out more",
    "html": 320681,
+   "packs": "928f7abf385a",
+   "packBytes": 3688690,
+   "content": {
+    "ch": [
+     "eli",
+     "june",
+     "dex",
+     "mara",
+     "noah",
+     "sloane",
+     "ivy",
+     "kai",
+     "wren",
+     "asher",
+     "zane",
+     "luna",
+     "rex",
+     "nova",
+     "omar",
+     "tess",
+     "jax",
+     "yuki",
+     "cole",
+     "sage"
+    ],
+    "wp": [
+     "pistol",
+     "revolver",
+     "smg",
+     "shotgun",
+     "rifle",
+     "sniper"
+    ],
+    "map": [
+     "mansion"
+    ]
+   }
+  },
+  {
+   "id": "20261122125553",
+   "note": "3D chests: two squares for men, two circles for women",
+   "html": 320671,
    "packs": "928f7abf385a",
    "packBytes": 3688690,
    "content": {
