@@ -369,6 +369,9 @@ h1,h2{font-family:'Creepster','Special Elite',serif;font-weight:400;margin:0;let
 @keyframes aAim{0%,45%,100%{transform:translateY(0)}60%,88%{transform:translateY(-42px)}}
 @keyframes aSway{0%,100%{transform:rotate(-9deg)}50%{transform:rotate(9deg)}}
 @keyframes aLift{0%,55%,100%{transform:translateY(0)}68%{transform:translateY(-18px)}82%{transform:translateY(3px)}}
+.ctabs{padding-top:14px!important;align-items:center}
+.schip{flex:none;font-size:13px;color:#9fe0ff;background:rgba(0,0,0,.6);border:1px solid #333;border-radius:20px;padding:6px 11px;white-space:nowrap}
+.setb{padding-top:18px!important}
 </style>
 </head>
 <body>
@@ -390,7 +393,7 @@ h1,h2{font-family:'Creepster','Special Elite',serif;font-weight:400;margin:0;let
     <rect x="215" y="320" width="20" height="30" fill="#200" /><circle cx="222" cy="332" r="1.6" fill="#f22"/><circle cx="229" cy="332" r="1.6" fill="#f22"/>
   </svg>
   <div class="fog"></div>
-  <div class="gname"><span id="gicon"></span>PENALTY</div>
+  <span id="gicon" style="display:none"></span>
   <div class="souls" id="mSouls"></div>
   <div id="homeChar" class="idle"></div>
   <div class="hn" id="homeName"></div>
@@ -417,23 +420,23 @@ h1,h2{font-family:'Creepster','Special Elite',serif;font-weight:400;margin:0;let
 
 <!-- COLLECTION -->
 <div id="coll" class="screen">
-  <div class="hdr"><h2>COLLECTION</h2><span class="soulsIn" id="cCount"></span></div>
-  <div class="ctabs"><button id="tabS" class="on">SURVIVORS</button><button id="tabW">WEAPONS</button></div>
-  <div class="sub" id="selInfo"></div>
+  
+  <div class="ctabs"><button id="tabS" class="on">SURVIVORS</button><button id="tabW">WEAPONS</button><span class="schip" id="cCount"></span></div>
+  <div id="selInfo" style="display:none"></div>
   <div id="grid"></div>
 </div>
 
 <!-- CHALLENGES -->
 <div id="chal" class="screen">
-  <div class="hdr"><h2>CHALLENGES</h2><span class="soulsIn" id="chSouls"></span></div>
-  <div class="ctabs" id="chTabs"><button data-v="d">DAILY</button><button data-v="w">WEEKLY</button><button data-v="m">MONTHLY</button></div>
+  
+  <div class="ctabs" id="chTabs"><button data-v="d">DAILY</button><button data-v="w">WEEKLY</button><button data-v="m">MONTHLY</button><span class="schip" id="chSouls"></span></div>
   <div class="sub" id="chInfo"></div>
   <div id="chList"></div>
 </div>
 
 <!-- SETTINGS -->
 <div id="settings" class="screen">
-  <div class="hdr"><h2>SETTINGS</h2></div>
+  
   <div class="setb">
     <div class="srow"><span>Sound</span><button class="sbtn" id="sSound">ON</button></div>
     <div class="srow"><span>FPS</span><div class="seg" id="sFps"><button data-v="30">30</button><button data-v="60">60</button><button data-v="120">120</button></div></div>
@@ -464,7 +467,7 @@ h1,h2{font-family:'Creepster','Special Elite',serif;font-weight:400;margin:0;let
 
 <script>
 /* ================= AUTO-UPDATE ================= */
-const BUILD='20261122065111';
+const BUILD='20261122065631';
 function checkUpdate(){try{if(window.G&&!window.G.over)return}catch(e){}
  fetch(location.pathname+'?cb='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{const m=/const BUILD='(\d+)'/.exec(t);if(m&&m[1]>BUILD&&!(typeof G!=='undefined'&&G&&!G.over&&document.getElementById('game').classList.contains('on')))location.replace(location.pathname+'?v='+m[1])}).catch(()=>{})}
 checkUpdate();document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkUpdate()});setInterval(checkUpdate,120000);
