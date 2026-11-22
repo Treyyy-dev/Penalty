@@ -29,10 +29,18 @@ service cloud.firestore {
       allow read: if true;
       allow write: if isDev();
     }
+    // the public leaderboard entry for each signed-in player
+    match /lb/{uid} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.n is string && request.resource.data.n.size() <= 14
+        && request.resource.data.rt is int && request.resource.data.rf is int;
+    }
     // one document per player name, so a name can only belong to one account
     match /names/{name} {
       allow read: if request.auth != null;
-      allow create: if request.auth != null && request.resource.data.uid == request.auth.uid;
+      // players claim their own name; the developer can also save the bot players' names
+      allow create: if request.auth != null && (request.resource.data.uid == request.auth.uid || isDev());
       allow delete: if request.auth != null && resource.data.uid == request.auth.uid;
     }
   }

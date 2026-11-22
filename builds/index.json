@@ -241,6 +241,48 @@
      "mansion"
     ]
    }
+  },
+  {
+   "id": "20261122100458",
+   "note": "1000 bot players with names, ranks and cosmetics; leaderboard; friend suggestions; bot friends and party invites; names and profiles in character select and over heads; taken names get a number",
+   "html": 253083,
+   "packs": "928f7abf385a",
+   "packBytes": 3688690,
+   "content": {
+    "ch": [
+     "eli",
+     "june",
+     "dex",
+     "mara",
+     "noah",
+     "sloane",
+     "ivy",
+     "kai",
+     "wren",
+     "asher",
+     "zane",
+     "luna",
+     "rex",
+     "nova",
+     "omar",
+     "tess",
+     "jax",
+     "yuki",
+     "cole",
+     "sage"
+    ],
+    "wp": [
+     "pistol",
+     "revolver",
+     "smg",
+     "shotgun",
+     "rifle",
+     "sniper"
+    ],
+    "map": [
+     "mansion"
+    ]
+   }
   }
  ]
 }

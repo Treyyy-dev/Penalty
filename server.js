@@ -11,6 +11,7 @@ const CAP = 12;                 // fighters per match
 const CHARS = ['eli', 'june', 'dex', 'mara', 'noah', 'sloane', 'ivy', 'kai', 'wren', 'asher'];
 const GUNS = ['rifle', 'shotgun', 'smg'];
 const MODES = ['team', 'ffa', 'rteam', 'rffa'];
+const BOTN = 1000;             // bot players; every copy of the game builds the same list, so a number is enough
 // players may pick characters newer than this list; bots stick to the ones every build has
 const okId = v => typeof v === 'string' && /^[a-z0-9_]{2,14}$/.test(v);
 
@@ -174,7 +175,7 @@ function dm(c, msg) {
 
 /* ---------- parties: up to three friends who queue together ---------- */
 const parties = new Map(); let nextParty = 1;
-const LOOK = ['ch', 'sk', 'camo', 'g1', 'g2', 'ic', 'bd', 'bn', 'st', 'md'];
+const LOOK = ['ch', 'sk', 'camo', 'g1', 'g2', 'ic', 'bd', 'bn', 'st', 'md', 'pb'];
 function pState(p) {
   const out = { t: 'party', pid: p.id, leader: p.leader.name, members: p.members.map(m => ({ name: m.name, look: m.look || {} })) };
   for (const m of p.members) send(m, out);
@@ -219,7 +220,7 @@ function party(c, t, msg) {
   if (t === 'pleave') return partyLeave(c);
   if (!p) return;
   // the leader starts matchmaking for everyone; anyone can call it off
-  if (t === 'pgo' && p.leader === c) { const mode = MODES.includes(msg.mode) ? msg.mode : 'team'; for (const m of p.members) send(m, { t: 'pgo', mode, pid: p.id, n: p.members.length }); return; }
+  if (t === 'pgo' && p.leader === c) { const mode = MODES.includes(msg.mode) ? msg.mode : 'team', nb = Math.max(0, Math.min(2, msg.nb | 0)); for (const m of p.members) send(m, { t: 'pgo', mode, pid: p.id, n: Math.min(3, p.members.length + nb) }); return; }
   if (t === 'pcan') { for (const m of p.members) send(m, { t: 'pcan', by: c.name }); }
 }
 
@@ -241,7 +242,12 @@ function join(c, msg) {
   c.skins = {};
   if (msg.skins && typeof msg.skins === 'object') for (const k of Object.keys(msg.skins).slice(0, 30)) if (okId(k) && /^[a-z0-9_]{2,24}$/.test(String(msg.skins[k]))) c.skins[k] = String(msg.skins[k]);
   c.pid = Number.isInteger(msg.pid) && msg.pid > 0 ? msg.pid : 0;
-  c.pn = c.pid ? Math.min(3, Math.max(1, msg.pn | 0)) : 1;
+  // bots the player invited to their party come with them
+  c.pb = Array.isArray(msg.pb) ? [...new Set(msg.pb.filter(v => Number.isInteger(v) && v >= 0 && v < BOTN))].slice(0, 2) : [];
+  c.pn = c.pid ? Math.min(3, Math.max(1, msg.pn | 0)) : 1 + c.pb.length;
+  c.nm = cleanName(msg.name) || 'PLAYER';
+  const cid = v => (/^[a-z0-9_]{2,24}$/.test(String(v || '')) ? String(v) : '');
+  c.ic = cid(msg.ic); c.bd = cid(msg.bd); c.bn = cid(msg.bn);
   let r = null;
   if (c.pid) for (const x of rooms.values()) if (x.mode === mode && x.state === 'wait' && x.members.some(m => m.pid === c.pid)) { r = x; break; }
   if (!r) for (const x of rooms.values()) if (x.mode === mode && x.state === 'wait' && pack(groupsOf(x, c), x.mode.includes('ffa'))) { r = x; break; }
@@ -251,13 +257,13 @@ function join(c, msg) {
     rooms.set(r.id, r);
   }
   c.room = r; r.members.push(c);
-  if (used(r) >= CAP) { clearTimeout(r.timer); startRoom(r); } else lobby(r);
+  if (used(r) >= CAP && !groupsOf(r).some(g => g.members.length + g.pb.length < g.size)) { clearTimeout(r.timer); startRoom(r); } else lobby(r);
 }
 
 // a party counts as its full size from the moment its first member arrives
 function groupsOf(r, extra) {
   const g = new Map(), list = extra ? [...r.members, extra] : r.members;
-  for (const m of list) { const k = m.pid ? 'p' + m.pid : 'c' + m.id; if (!g.has(k)) g.set(k, { size: m.pid ? m.pn : 1, members: [] }); g.get(k).members.push(m); }
+  for (const m of list) { const k = m.pid ? 'p' + m.pid : 'c' + m.id; if (!g.has(k)) g.set(k, { size: m.pn || 1, members: [], pb: [] }); const q = g.get(k); q.members.push(m); q.pb.push(...(m.pb || [])); q.size = Math.max(q.size, m.pn || 1); }
   return [...g.values()];
 }
 const used = r => groupsOf(r).reduce((a, g) => a + g.size, 0);
@@ -274,16 +280,24 @@ function startRoom(r) {
   if (r.state !== 'wait') return;
   if (!r.members.length) { rooms.delete(r.id); return; }
   // give a party that is still arriving a few more seconds, once
-  if (!r.ext && groupsOf(r).some(g => g.members.length < g.size)) { r.ext = 1; r.timer = setTimeout(() => startRoom(r), 4000); return; }
+  if (!r.ext && groupsOf(r).some(g => g.members.length + g.pb.length < g.size)) { r.ext = 1; r.timer = setTimeout(() => startRoom(r), 4000); return; }
   r.state = 'play';
   const ffa = r.mode.includes('ffa');
   const groups = groupsOf(r), at = pack(groups, ffa) || new Map();
-  const taken = new Set();
-  for (const g of groups) { let s = at.has(g) ? at.get(g) : -1; for (const m of g.members) { if (s < 0 || taken.has(s)) { s = 0; while (taken.has(s)) s++; } m.slot = s; taken.add(s); s++; } }
+  const taken = new Set(), pbs = new Map();
+  for (const g of groups) {
+    let s = at.has(g) ? at.get(g) : -1;
+    const place = () => { if (s < 0 || taken.has(s)) { s = 0; while (taken.has(s)) s++; } const v = s; taken.add(s); s++; return v; };
+    for (const m of g.members) m.slot = place();
+    for (const b of g.pb) if (taken.size < CAP) pbs.set(place(), b);
+  }
+  // every other spot is a bot player, picked at random and never twice in one match
+  const usedB = new Set(pbs.values()), pickB = () => { let b; do b = Math.floor(Math.random() * BOTN); while (usedB.has(b)); usedB.add(b); return b; };
   const f = [];
   for (let s = 0; s < CAP; s++) {
     const m = r.members.find(x => x.slot === s);
-    f.push(m ? { s, h: 1, ch: m.ch, gun: m.gun, camo: m.camo || '', skins: m.skins || {} } : { s, h: 0, ch: CHARS[Math.floor(Math.random() * CHARS.length)], gun: GUNS[s % GUNS.length] });
+    f.push(m ? { s, h: 1, ch: m.ch, gun: m.gun, camo: m.camo || '', skins: m.skins || {}, name: m.nm, ic: m.ic, bd: m.bd, bn: m.bn }
+      : { s, h: 0, b: pbs.has(s) ? pbs.get(s) : pickB(), ch: CHARS[Math.floor(Math.random() * CHARS.length)], gun: GUNS[s % GUNS.length] });
   }
   r.host = r.members.reduce((a, b) => (b.slot < a.slot ? b : a));
   for (const m of r.members) send(m, { t: 'start', you: m.slot, host: r.host.slot, mode: r.mode, ffa, f });
