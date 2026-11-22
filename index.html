@@ -201,6 +201,7 @@ h1,h2{font-family:'Creepster','Special Elite',serif;font-weight:400;margin:0;let
 /* home + nav */
 #menu{padding:0 24px calc(84px + env(safe-area-inset-bottom))!important}
 .gname{position:absolute;top:14px;left:14px;z-index:5;font-family:'Creepster',serif;font-size:24px;letter-spacing:3px;color:#c9161b;text-shadow:0 0 10px rgba(200,20,20,.5),0 2px 0 #000}
+#homeMsg{position:relative;z-index:3;min-height:38px;max-width:86%;display:flex;align-items:flex-end;justify-content:center;text-align:center;font-size:14px;line-height:1.3;color:#fff;letter-spacing:.5px;text-shadow:0 1px 6px #000;margin-bottom:4px}
 #homeChar{position:relative;z-index:2;filter:drop-shadow(0 10px 24px #000)}
 #homeChar svg{display:block;height:min(52vh,460px);width:auto;overflow:visible}
 .hn{position:relative;z-index:2;font-size:15px;color:#ddd;margin:4px 0 2px;letter-spacing:1px;text-shadow:0 1px 4px #000}
@@ -428,6 +429,7 @@ h1,h2{font-family:'Creepster','Special Elite',serif;font-weight:400;margin:0;let
   <div class="fog"></div>
   <span id="gicon" style="display:none"></span>
   <div class="souls" id="mSouls"></div>
+  <div id="homeMsg"></div>
   <div id="homeChar" class="idle"></div>
   <div class="hn" id="homeName"></div>
   <div id="modeList"></div>
@@ -494,7 +496,6 @@ h1,h2{font-family:'Creepster','Special Elite',serif;font-weight:400;margin:0;let
 <div id="end" class="screen"><h1 id="endT"></h1><p id="endP"></p><button class="mbtn" id="bAgain">TRY AGAIN</button><button class="mbtn alt" id="bMenu">MAIN MENU</button></div>
 
 <div id="nav"><button data-go="chal"><i>★</i>CHALLENGES</button><button data-go="menu"><i>⌂</i>HOME</button><button data-go="coll"><i>▦</i>COLLECTION</button><button data-go="settings"><i>⚙</i>SETTINGS</button></div>
-<div class="modal" id="lob"><div class="panel"><h2 style="font-size:30px;color:#c9161b">ONLINE</h2><p id="lobT" style="min-height:44px;font-size:14px;color:#ddd"></p><button class="mbtn alt" id="lobOff">CANCEL</button></div></div>
 <div class="modal" id="detail"><div class="panel" id="detailP"></div></div>
 <div class="modal" id="pad"><div class="panel"><p id="padT"></p><div class="disp" id="padD"></div><div id="keys"></div><p id="padHint" class="perk"></p></div></div>
 <div id="scare"></div>
@@ -502,7 +503,7 @@ h1,h2{font-family:'Creepster','Special Elite',serif;font-weight:400;margin:0;let
 
 <script>
 /* ================= AUTO-UPDATE ================= */
-const BUILD='20261122073035';
+const BUILD='20261122073232';
 function checkUpdate(){try{if(window.G&&!window.G.over)return}catch(e){}
  fetch(location.pathname+'?cb='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{const m=/const BUILD='(\d+)'/.exec(t);if(m&&m[1]>BUILD&&!(typeof G!=='undefined'&&G&&!G.over&&document.getElementById('game').classList.contains('on')))location.replace(location.pathname+'?v='+m[1])}).catch(()=>{})}
 checkUpdate();document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkUpdate()});setInterval(checkUpdate,120000);
@@ -658,7 +659,7 @@ const rpOf=m=>(S.rp=S.rp||{team:0,ffa:0})[m.includes('ffa')?'ffa':'team'];
 const rankTxt=m=>{const r=rpOf(m);return RANKS[Math.min(5,Math.floor(r/100))]+' · '+r+' RP'};
 function drawMode(){S.mode=S.mode||'team';const m=MODES.find(x=>x[0]===S.mode)||MODES[0],rk=m[0][0]==='r';$('bMode').innerHTML='MODE<b>'+m[1]+'</b>'+(rk?'<small>'+rankTxt(m[0])+'</small>':'');
  $('modeList').innerHTML=MODES.map(x=>`<button data-m="${x[0]}" class="${x[0]===S.mode?'on':''}">${x[1]}<small>${x[0][0]==='r'?rankTxt(x[0]):x[2]}</small></button>`).join('')}
-$('bMode').onclick=()=>{tick();$('modeList').classList.toggle('on')};
+$('bMode').onclick=()=>{if(NET.ws)return;tick();$('modeList').classList.toggle('on')};
 $('modeList').onclick=e=>{const b=e.target.closest('button');if(!b)return;S.mode=b.dataset.m;save();tick();$('modeList').classList.remove('on');drawMode()};
 
 /* ================= WEAPONS ================= */
@@ -1003,20 +1004,20 @@ function netTick(dt){if(!NET.on)return;NET.q-=dt;if(NET.q>0)return;NET.q=.08;con
  netSend({t:'st',x:r(P.x),y:r(P.y),hp:Math.round(G.hp),sh:Math.round(G.sh),dn:G.down?1:0,mv:P.mov>0?1:0,rl:G.guns[G.gi].reload>0?1:0,gh:abOn('sloane')?1:0,mf:G.lock&&G.fcd>0?1:0});
  if(NET.host===NET.slot){const b=[];for(const e of [...G.team,...G.zs])if(!e.net&&e.slot!=null)b.push([e.slot,r(e.x),r(e.y),Math.round(e.hp),Math.round(e.sh),e.dead?2:e.state==='down'?1:0,e.mov?1:0,e.rl>0?1:0,e.mf>0?1:0]);if(b.length)netSend({t:'bots',b})}}
 function netLost(){if(!G||G.over)return;for(const e of [...G.team,...G.zs])if(e.net&&!e.gone){e.net=false}G.over=true;netClose();for(const k of ['knock','redv','hide'])$(k).classList.remove('on');show('menu');lobFail('Connection lost. The match has ended.')}
-function lobFail(msg){$('lob').classList.add('on');$('lobT').textContent=msg;const b=$('lobOff');b.textContent='TRY AGAIN';b.onclick=()=>{$('lob').classList.remove('on');ready()};if(!$('lobX')){const x=document.createElement('button');x.className='mbtn alt';x.id='lobX';x.textContent='CLOSE';b.after(x)}$('lobX').style.display='';$('lobX').onclick=()=>$('lob').classList.remove('on')}
+function lobFail(msg){$('homeMsg').textContent=msg;$('bPlay').textContent='READY';$('bPlay').onclick=ready}
 function netClose(){if(NET.ws){const w=NET.ws;NET.ws=null;NET.on=false;try{w.onclose=null;w.send(JSON.stringify({t:'out'}))}catch(e){}try{w.close()}catch(e){}}NET.on=false}
-function ready(){initAudio();if($('lobX'))$('lobX').style.display='none';$('lobOff').textContent='CANCEL';
- const L=$('lob'),T=$('lobT');L.classList.add('on');T.textContent='Connecting to the server...';let done=false,tick=null,endAt=0,n=1;
- const fin=()=>{done=true;clearInterval(tick);clearTimeout(t1);clearTimeout(t2);L.classList.remove('on')};
+function ready(){initAudio();show('menu');$('modeList').classList.remove('on');
+ const T=$('homeMsg'),B=$('bPlay');T.textContent='Connecting...';B.textContent='CANCEL';let done=false,tick=null,endAt=0,n=1;
+ const fin=()=>{done=true;clearInterval(tick);clearTimeout(t1);clearTimeout(t2);T.textContent='';B.textContent='READY';B.onclick=ready};
  const off=msg=>{if(done)return;fin();netClose();lobFail(msg||'Could not reach the server.')};
- $('lobOff').onclick=()=>{if(done)return;fin();netClose()};
+ B.onclick=()=>{if(done)return;fin();netClose()};
  let ws;try{ws=new WebSocket(wsUrl())}catch(e){off('Online play is not available here. Open the game from its own site.');return}
  NET.ws=ws;NET.on=false;const c=chr(S.active);
- const t1=setTimeout(()=>{if(!done&&ws.readyState!==1)T.textContent='Waking the server up... the first match can take up to a minute.'},4000);
+ const t1=setTimeout(()=>{if(!done&&ws.readyState!==1)T.textContent='Connecting... the first match can take up to a minute.'},4000);
  const t2=setTimeout(()=>{if(!done&&ws.readyState!==1){off('Could not reach the server. Check your connection and try again.')}},75000);
  ws.onopen=()=>{ws.send(JSON.stringify({t:'join',mode:S.mode||'team',ch:c.id,gun:S.eq.g1}));T.textContent='Looking for players...'};
  ws.onmessage=ev=>{let m;try{m=JSON.parse(ev.data)}catch(e){return}
-  if(m.t==='lobby'){endAt=Date.now()+m.ms;n=m.n;const up=()=>{if(!done)T.textContent=`${n} player${n>1?'s':''} in the lobby — starting in ${Math.max(0,Math.ceil((endAt-Date.now())/1000))}s. Empty spots are filled with bots.`};up();clearInterval(tick);tick=setInterval(up,500)}
+  if(m.t==='lobby'){endAt=Date.now()+m.ms;n=m.n;const up=()=>{if(!done)T.textContent=`${n} player${n>1?'s':''} found — starting in ${Math.max(0,Math.ceil((endAt-Date.now())/1000))}s`};up();clearInterval(tick);tick=setInterval(up,500)}
   else if(m.t==='start'){fin();NET.on=true;NET.slot=m.you;NET.host=m.host;start(m)}
   else netMsg(m)};
  ws.onerror=()=>{if(!done)off('Could not connect to the server.')};
