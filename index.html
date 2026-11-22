@@ -202,6 +202,13 @@ h1,h2{font-family:'Creepster','Special Elite',serif;font-weight:400;margin:0;let
 /* home + nav */
 #menu{padding:0 24px calc(84px + env(safe-area-inset-bottom))!important}
 .gname{position:absolute;top:14px;left:14px;z-index:5;font-family:'Creepster',serif;font-size:24px;letter-spacing:3px;color:#c9161b;text-shadow:0 0 10px rgba(200,20,20,.5),0 2px 0 #000}
+#prof{position:absolute;top:10px;left:10px;z-index:5;display:flex;align-items:center;gap:8px;background:rgba(0,0,0,.6);border:1px solid #333;border-radius:26px;padding:4px 14px 4px 4px;text-align:left;max-width:58%}
+#prof .pa{width:42px;height:42px;border-radius:50%;overflow:hidden;border:2px solid #e8b422;flex:none;background:#1a1d28}
+#prof .pa svg{display:block;width:100%;height:auto;margin:0;border:0;border-radius:0}
+#prof b{display:block;font-size:14px;color:#fff;font-weight:400;letter-spacing:.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#prof small{display:block;font-size:10px;color:#ffe08a;letter-spacing:.5px;white-space:nowrap}
+#nav button.lock,.ctabs button.lock{opacity:.45;color:#888}
+#chTabs{gap:5px}#chTabs button{font-size:10.5px;letter-spacing:.5px;padding:9px 2px;white-space:nowrap;min-width:0}
 #homeMsg{position:relative;z-index:3;min-height:38px;max-width:86%;display:flex;align-items:flex-end;justify-content:center;text-align:center;font-size:14px;line-height:1.3;color:#fff;letter-spacing:.5px;text-shadow:0 1px 6px #000;margin-bottom:4px}
 #homeChar{position:relative;z-index:2;filter:drop-shadow(0 10px 24px #000)}
 #homeChar svg{display:block;height:min(52vh,460px);width:auto;overflow:visible}
@@ -429,6 +436,7 @@ h1,h2{font-family:'Creepster','Special Elite',serif;font-weight:400;margin:0;let
   </svg>
   <div class="fog"></div>
   <span id="gicon" style="display:none"></span>
+  <button id="prof"></button>
   <div class="souls" id="mSouls"></div>
   <div id="homeMsg"></div>
   <div id="homeChar" class="idle"></div>
@@ -466,7 +474,7 @@ h1,h2{font-family:'Creepster','Special Elite',serif;font-weight:400;margin:0;let
 <!-- CHALLENGES -->
 <div id="chal" class="screen">
   
-  <div class="ctabs" id="chTabs"><button data-v="d">DAILY</button><button data-v="w">WEEKLY</button><button data-v="m">MONTHLY</button><span class="schip" id="chSouls"></span></div>
+  <div class="ctabs" id="chTabs"><button data-v="d">DAILY</button><button data-v="w">WEEKLY</button><button data-v="m">MONTHLY</button><button class="lock" id="chEv">🔒 EVENTS</button><span class="schip" id="chSouls"></span></div>
   <div class="sub" id="chInfo"></div>
   <div id="chList"></div>
 </div>
@@ -496,7 +504,7 @@ h1,h2{font-family:'Creepster','Special Elite',serif;font-weight:400;margin:0;let
 <!-- END -->
 <div id="end" class="screen"><h1 id="endT"></h1><p id="endP"></p><button class="mbtn" id="bAgain">TRY AGAIN</button><button class="mbtn alt" id="bMenu">MAIN MENU</button></div>
 
-<div id="nav"><button data-go="chal"><i>★</i>CHALLENGES</button><button data-go="menu"><i>⌂</i>HOME</button><button data-go="coll"><i>▦</i>COLLECTION</button><button data-go="settings"><i>⚙</i>SETTINGS</button></div>
+<div id="nav"><button data-go="chal"><i>★</i>CHALLENGES</button><button class="lock" id="navEv"><i>🔒</i>EVENTS</button><button data-go="menu"><i>⌂</i>HOME</button><button data-go="coll"><i>▦</i>COLLECTION</button><button data-go="settings"><i>⚙</i>SETTINGS</button></div>
 <div class="modal" id="detail"><div class="panel" id="detailP"></div></div>
 <div class="modal" id="pad"><div class="panel"><p id="padT"></p><div class="disp" id="padD"></div><div id="keys"></div><p id="padHint" class="perk"></p></div></div>
 <div id="scare"></div>
@@ -504,7 +512,7 @@ h1,h2{font-family:'Creepster','Special Elite',serif;font-weight:400;margin:0;let
 
 <script>
 /* ================= AUTO-UPDATE ================= */
-const BUILD='20261122073606';
+const BUILD='20261122073735';
 function checkUpdate(){try{if(window.G&&!window.G.over)return}catch(e){}
  fetch(location.pathname+'?cb='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{const m=/const BUILD='(\d+)'/.exec(t);if(m&&m[1]>BUILD&&!(typeof G!=='undefined'&&G&&!G.over&&document.getElementById('game').classList.contains('on')))location.replace(location.pathname+'?v='+m[1])}).catch(()=>{})}
 checkUpdate();document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkUpdate()});setInterval(checkUpdate,120000);
@@ -623,7 +631,7 @@ const $=id=>document.getElementById(id);
 const fixEq=()=>{const ok=i=>i&&WP.some(w=>w.id===i)&&S.wp[i];if(!ok(S.eq.g1))S.eq.g1='pistol';if(!ok(S.eq.g2)||S.eq.g2===S.eq.g1)S.eq.g2=S.eq.g1==='rifle'?'pistol':(ok(S.eq.g2)&&S.eq.g2!==S.eq.g1?S.eq.g2:'rifle')};
 const chr=id=>CH.find(c=>c.id===id);
 function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===id));const tab=['menu','gacha','coll','settings','chal'].includes(id);if(id==='chal')drawChal();$('nav').style.display=tab?'flex':'none';document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('act',b.dataset.go===id));if(id==='settings')$('sSound').textContent=muted?'OFF':'ON';if(id==='menu')drawMenu();if(id==='gacha')drawGacha();if(id==='coll')drawColl()}
-function drawMenu(){$('mSouls').innerHTML=COIN+S.souls;const c=chr(S.active);$('homeChar').className='idle i'+CH.indexOf(c);$('homeChar').innerHTML=`<svg viewBox="-4 0 208 792" xmlns="http://www.w3.org/2000/svg">${figIn(c,'ok',0,false,{hand:S.eq.g1,back:S.eq.g2})}</svg>`;$('homeName').innerHTML=c.n+'<small>'+loadTxt()+'</small>';document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('act',b.dataset.go==='menu'));drawMode();$('modeList').classList.remove('on')}
+function drawMenu(){$('mSouls').innerHTML=COIN+S.souls;{const pc=chr(S.active),bm=(S.mode||'team').includes('ffa')?'rffa':'rteam';$('prof').innerHTML=`<span class="pa">${art(pc)}</span><span style="min-width:0"><b></b><small>${rankTxt(bm).split(' · ')[0]} · ${S.wins||0} WINS</small></span>`;$('prof').querySelector('b').textContent=S.name||'PLAYER'}const c=chr(S.active);$('homeChar').className='idle i'+CH.indexOf(c);$('homeChar').innerHTML=`<svg viewBox="-4 0 208 792" xmlns="http://www.w3.org/2000/svg">${figIn(c,'ok',0,false,{hand:S.eq.g1,back:S.eq.g2})}</svg>`;$('homeName').innerHTML=c.n+'<small>'+loadTxt()+'</small>';document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('act',b.dataset.go==='menu'));drawMode();$('modeList').classList.remove('on')}
 document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{tick();show(b.dataset.go)});
 
 
@@ -1211,7 +1219,7 @@ function frame(t){requestAnimationFrame(frame);if(t-last<1000/(S.fps||60)-2)retu
  window.addEventListener('keydown',e=>{if(KM[e.key])keys[KM[e.key]]=1;if((e.key===' '||e.key==='e')&&!e.repeat)doAct()});window.addEventListener('keyup',e=>{if(KM[e.key])keys[KM[e.key]]=0});
  window.addEventListener('resize',sizeCv)})();
 $('actB').onclick=doAct;$('abB').onclick=useAb;$('swapB').onclick=swapGun;
-$('bPlay').onclick=ready;$('bAgain').onclick=ready;$('bMenu').onclick=()=>show('menu');
+$('prof').onclick=()=>{tick();const n=prompt('Player name',S.name||'');if(n!==null){S.name=n.trim().slice(0,14);save();drawMenu()}};const evLock=e=>{sfx('bad');const b=e.currentTarget,t=b.innerHTML;if(b.dataset.t)return;b.dataset.t=1;b.lastChild.textContent=b.id==='navEv'?'LOCKED':'🔒 LOCKED';setTimeout(()=>{b.innerHTML=t;delete b.dataset.t},900)};$('navEv').onclick=evLock;$('chEv').onclick=evLock;$('bPlay').onclick=ready;$('bAgain').onclick=ready;$('bMenu').onclick=()=>show('menu');
 $('bQuit').onclick=()=>{netClose();if(G)G.over=true;$('redv').classList.remove('on');$('hide').classList.remove('on');$('knock').classList.remove('on');show('menu')};
 /* game icon: Asher Vale */
 (function(){try{const svg=art(chr('asher')).replace('class="art"','width="256" height="333"'),uri='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
