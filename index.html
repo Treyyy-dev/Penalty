@@ -372,6 +372,8 @@ h1,h2{font-family:'Creepster','Special Elite',serif;font-weight:400;margin:0;let
 .ctabs{padding-top:14px!important;align-items:center}
 .schip{flex:none;font-size:13px;color:#9fe0ff;background:rgba(0,0,0,.6);border:1px solid #333;border-radius:20px;padding:6px 11px;white-space:nowrap}
 .setb{padding-top:18px!important}
+.duo{justify-content:center!important}
+.duo>svg{height:min(52vh,460px)!important;margin:0 auto}
 </style>
 </head>
 <body>
@@ -467,7 +469,7 @@ h1,h2{font-family:'Creepster','Special Elite',serif;font-weight:400;margin:0;let
 
 <script>
 /* ================= AUTO-UPDATE ================= */
-const BUILD='20261122065631';
+const BUILD='20261122070335';
 function checkUpdate(){try{if(window.G&&!window.G.over)return}catch(e){}
  fetch(location.pathname+'?cb='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{const m=/const BUILD='(\d+)'/.exec(t);if(m&&m[1]>BUILD&&!(typeof G!=='undefined'&&G&&!G.over&&document.getElementById('game').classList.contains('on')))location.replace(location.pathname+'?v='+m[1])}).catch(()=>{})}
 checkUpdate();document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkUpdate()});setInterval(checkUpdate,120000);
@@ -609,7 +611,7 @@ $('pull1').onclick=()=>pull(1,100);$('pull10').onclick=()=>pull(10,900);
 /* ================= COLLECTION ================= */
 const CPRICE=1500,WPRICE=800;
 function showC(c){const own=!!S.owned[c.id];
- $('detailP').innerHTML=`<div class="duo">${card(c)}<svg class="idle i${CH.indexOf(c)}" viewBox="-4 0 208 792" xmlns="http://www.w3.org/2000/svg">${figIn(c,'ok',0,false,{hand:S.eq.g1,back:S.eq.g2})}</svg></div><h2 style="font-size:26px;color:#ddd">${c.n}</h2><p>${c.bio}</p><p class="perk">Ability: ${ABIL[c.id].n} — ${ABIL[c.id].d}</p>`+
+ $('detailP').innerHTML=`<div class="duo"><svg class="idle i${CH.indexOf(c)}" viewBox="-4 0 208 792" xmlns="http://www.w3.org/2000/svg">${figIn(c,'ok',0,false,{hand:S.eq.g1,back:S.eq.g2})}</svg></div><h2 style="font-size:26px;color:#ddd">${c.n}</h2><p>${c.bio}</p><p class="perk">Ability: ${ABIL[c.id].n} — ${ABIL[c.id].d}</p>`+
   (own?`<button class="mbtn" id="dSel">${S.active===c.id?'SELECTED':'SELECT'}</button>`:`<button class="mbtn" id="dBuy">BUY — ☠ ${CPRICE}</button><p id="dMsg" style="color:#9fe0ff">You have ☠ ${S.souls}</p>`)+`<button class="mbtn alt" id="dClose">CLOSE</button>`;
  $('detail').classList.add('on');$('dClose').onclick=()=>{$('detail').classList.remove('on');drawColl()};
  if(own)$('dSel').onclick=()=>{S.active=c.id;save();$('detail').classList.remove('on');drawColl()};
