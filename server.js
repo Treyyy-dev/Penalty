@@ -11,6 +11,8 @@ const CAP = 12;                 // fighters per match
 const CHARS = ['eli', 'june', 'dex', 'mara', 'noah', 'sloane', 'ivy', 'kai', 'wren', 'asher'];
 const GUNS = ['rifle', 'shotgun', 'smg'];
 const MODES = ['team', 'ffa', 'rteam', 'rffa'];
+// players may pick characters newer than this list; bots stick to the ones every build has
+const okId = v => typeof v === 'string' && /^[a-z0-9_]{2,14}$/.test(v);
 
 /* ---------- http: health check + the game page ---------- */
 const server = http.createServer((req, res) => {
@@ -177,7 +179,7 @@ function lobby(r) { all(r, { t: 'lobby', n: r.members.length, ms: Math.max(0, r.
 function join(c, msg) {
   if (c.room) return;
   const mode = MODES.includes(msg.mode) ? msg.mode : 'team';
-  c.ch = CHARS.includes(msg.ch) ? msg.ch : 'eli';
+  c.ch = okId(msg.ch) ? msg.ch : 'eli';
   c.gun = typeof msg.gun === 'string' ? msg.gun.slice(0, 16) : 'pistol';
   let r = null;
   for (const x of rooms.values()) if (x.mode === mode && x.state === 'wait' && x.members.length < CAP) { r = x; break; }
@@ -226,7 +228,7 @@ function onMsg(c, msg) {
   if (t === 'dm') return dm(c, msg);
   const r = c.room; if (!r || r.state !== 'play') return;
   if (t === 'pick') {            // character select: a player picks for themselves, the host picks for bots
-    if (!CHARS.includes(msg.ch)) return;
+    if (!okId(msg.ch)) return;
     const bot = Number.isInteger(msg.s) && msg.s >= 0 && msg.s < CAP && !bySlot(r, msg.s);
     return others(r, c, { t: 'pick', s: r.host === c && bot ? msg.s : c.slot, ch: msg.ch });
   }
