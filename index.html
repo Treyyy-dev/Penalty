@@ -646,7 +646,7 @@ h1,h2{font-family:'Creepster','Special Elite',serif;font-weight:400;margin:0;let
 /* ================= RELEASES =================
    The page that opens the game (index.html) loads one build from builds/. Players stay on
    the build the developer last released; this section notices when a newer one is released. */
-const BUILD='20261122100458';
+const BUILD='20261122100643';
 const RELS=window.REL||{build:'',content:[],latest:BUILD,dev:false};
 const FSDOC='https://firestore.googleapis.com/v1/projects/penalty-de8db/databases/(default)/documents/';
 var UPD=null;
@@ -1343,7 +1343,7 @@ function hurtFx(){sfx('bad');sfx('beat');const s=$('scare');s.innerHTML='';s.cla
 function hit(dmg,txt){if(G.over||G.down)return;if(G.shield){G.shield=0;sfx('banish');say('Your charm burns hot — the bullet glances off. It won\'t work twice.');drawHud();return}
  if(G.perk.dodge&&Math.random()<.35){sfx('banish');say('You twist away — the shot goes wide.');return}
  soak(G,abOn('ivy')?dmg*.5:dmg);if(abOn('cole')&&G.hp<1)G.hp=1;hurtFx();drawHud();if(G.hp<=0){G.hp=0;if(G.team.some(t=>t.state!=='down')){G.down=true;G.bleed=30;G.revT=0;$('knock').classList.add('on');say('You are DOWN. Crawl toward a teammate — they can get you back up.')}else{G.over=true;setTimeout(()=>end(false),500)}}else say(txt)}
-function end(win){G.over=true;$('cdn').classList.remove('on','pop','go');netClose();track('matches',1);if(win)track('wins',1);track('time',Math.floor(G.tAcc||0));$('knock').classList.remove('on');$('redv').classList.remove('on');$('hide').classList.remove('on');
+function end(win){G.over=true;setTimeout(()=>{try{if(FB.user)fbPush()}catch(e){}},300);$('cdn').classList.remove('on','pop','go');netClose();track('matches',1);if(win)track('wins',1);track('time',Math.floor(G.tAcc||0));$('knock').classList.remove('on');$('redv').classList.remove('on');$('hide').classList.remove('on');
  const left=G.zs.filter(z=>!z.dead).length,place=G.ffa?left+1:1+[1,2,3].filter(k=>G.zs.some(z=>!z.dead&&z.team===k)).length,of=G.ffa?12:4;
  const reward=(win?300:30)+G.kills*20;S.souls+=reward;if(win)S.wins=(S.wins||0)+1;let rkTxt='';
  if(G.rk){const k=G.ffa?'ffa':'team',d=win?(G.ffa?40:30):G.ffa?(place<=3?15:place<=6?0:-15):(place===2?5:-15)+0,before=rpOf(G.md);S.rp[k]=Math.max(0,before+d+G.kills*2);rkTxt=`<br>Rank: ${rankTxt(G.md)} <span style="color:${S.rp[k]>=before?'#7dff8a':'#ff6a6a'}">(${S.rp[k]>=before?'+':''}${S.rp[k]-before})</span>`}
@@ -1615,13 +1615,13 @@ async function studio(){const P=$('dlP');P.onclick=null;P.innerHTML='<h2 style="
    `<div class="dvbox"><h3>${pend?'UPDATE READY':'NO UPDATE WAITING'}</h3>`+(pend?`<div class="dvp" style="margin:0">Newest build: <b>${bWhen(last.id)}</b><br>Changes waiting: <b>${wait.length}</b><br>Download size — MIN <b>${kb(minB)}</b> · FULL <b>${kb(fullB)}</b></div><ul>${wait.slice(-10).reverse().map(b=>'<li>'+esc(b.note||'Update')+'</li>').join('')}</ul><button class="dvgo" id="stRel">${rel.build?'RELEASE UPDATE':'RELEASE THIS BUILD'}</button>`:'<div class="dvp" style="margin:0">Players are on the newest build.</div>')+'</div>'+
    `<div class="dvbox"><h3>NEW CHARACTERS, WEAPONS AND MAPS</h3>`+(fresh.length?fresh.map(x=>`<div class="dvrow"><span>${x[0]}: <b>${esc(x[1])}</b></span><button data-c="${esc(x[1])}">RELEASE</button></div>`).join('')+'<div class="dvp">Releasing one also releases the newest build, because that is where it lives.</div>':'<div class="dvp" style="margin:0">Nothing waiting.</div>')+'</div>'+
    `<div class="dvbox"><h3>STORE</h3><div class="dvp" style="margin:0">${COST.map(x=>x[1][0]+x[1].slice(1).toLowerCase()+' <b>'+(rel.shop||[]).filter(i=>COSM[i]&&COSM[i].t===x[0]).length+'</b> of '+COS.filter(c=>c.t===x[0]).length).join(' · ')} in the store.<br>The store shows 3 of each. A kind starts rotating at 10 PM (New York time) once it has more than 3.</div><button class="dvgo" id="stShop">MANAGE STORE</button></div>`+
-   `<div class="dvbox"><h3>BOT PLAYERS</h3><div class="dvp" style="margin:0">${BOTN} bot players. Save their names to the database so real players cannot take them.</div><button class="dvgo" id="stBots">SAVE BOT NAMES</button></div>`+
+   `<div class="dvbox"><h3>BOT PLAYERS</h3><div class="dvp" style="margin:0">${BOTN} bot players. Save them to the database so every phone has the same players and real players cannot take their names.</div><button class="dvgo" id="stBots">SAVE BOT PLAYERS</button></div>`+
    `<div class="dvbox"><h3>PREVIEW ON THIS PHONE</h3><div class="dvrow"><span>Play the newest build before releasing it</span><button id="stPrev">${dev?'ON':'OFF'}</button></div></div><p class="dvp" id="stE"></p><button class="mbtn alt" id="devX">CLOSE</button>`;
   $('devX').onclick=()=>$('dlM').classList.remove('on');
   const put=async c=>{try{await m.setDoc(ref,{build:last.id,content:c,at:Date.now()},{merge:true});studio()}catch(e){$('stE').textContent='Could not release. Check the database rules are published.'}};
   if(pend)$('stRel').onclick=()=>{tick();put(rel.content)};
   $('stShop').onclick=()=>{tick();shopMgr(ref,(rel.shop||[]).filter(i=>COSM[i]))};
-  $('stBots').onclick=async()=>{const b=$('stBots');if(b.disabled)return;b.disabled=true;let ok=0,had=0,bad=0;const q=BOTS.map((x,i)=>[x.name,i]);
+  $('stBots').onclick=async()=>{const b=$('stBots');if(b.disabled)return;b.disabled=true;let ok=0,had=0,bad=0;try{await m.setDoc(m.doc(FB.db,'config','bots'),{list:BOTS.map(botPack),at:Date.now()})}catch(e){b.textContent='Could not save. Publish the new rules first.';b.disabled=false;return}const q=BOTS.map((x,i)=>[x.name,i]);
    const run=async()=>{for(;;){const it=q.shift();if(!it)return;try{const r2=m.doc(FB.db,'names',it[0]),sn=await m.getDoc(r2);if(sn.exists())had++;else{await m.setDoc(r2,{uid:'bot',b:it[1]});ok++}}catch(e){bad++}b.textContent='SAVING '+(ok+had+bad)+' / '+BOTN}};
    await Promise.all(Array.from({length:12},run));b.textContent='DONE · '+ok+' saved · '+had+' already there'+(bad?' · '+bad+' failed (publish the new rules)':'')};
   P.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{tick();put([...rel.content,b.dataset.c])});
@@ -1721,7 +1721,14 @@ const BOTS=(()=>{let a=0x9e3779b9;const r=()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.
   out.push({name:n,ch,sk:sks.length&&r()<.45?pk(sks).id:'',camo:opt('camo',.45),gun:g1,g2:pk(GN.filter(g=>g!==g1)),ic:opt('icon',.7),bd:opt('border',.5),bn:opt('banner',.6),
    rt:rt*100+Math.floor(r()*(rt===5?400:100)),rf:rf*100+Math.floor(r()*(rf===5?400:100)),w:Math.floor(r()*300)})}
  return out})();
-const BOTI={};BOTS.forEach((b,i)=>BOTI[b.name]=i);
+const botPack=b=>[b.name,b.ch,b.sk,b.camo,b.gun,b.g2,b.ic,b.bd,b.bn,b.rt,b.rf].join('|');
+const botUnpack=t=>{const a=String(t).split('|');return{name:a[0],ch:a[1],sk:a[2],camo:a[3],gun:a[4],g2:a[5],ic:a[6],bd:a[7],bn:a[8],rt:+a[9]||0,rf:+a[10]||0}};
+const BOTI={};
+function botUse(list){if(!Array.isArray(list)||list.length!==BOTN)return false;const u=list.map(botUnpack);if(u.some(b=>!b.name))return false;BOTS.splice(0,BOTN,...u);for(const k in BOTI)delete BOTI[k];BOTS.forEach((b,i)=>BOTI[b.name]=i);return true}
+BOTS.forEach((b,i)=>BOTI[b.name]=i);
+try{botUse(JSON.parse(lsGet('penalty_bots')||'null'))}catch(e){}
+function botSync(){if(typeof fetch!=='function')return;try{fetch(FSDOC+'config/bots',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(d=>{const v=d&&d.fields&&d.fields.list&&d.fields.list.arrayValue&&d.fields.list.arrayValue.values;if(!v)return;const l=v.map(x=>x.stringValue||'');if(JSON.stringify(l)!==lsGet('penalty_bots')&&botUse(l))lsSet('penalty_bots',JSON.stringify(l))}).catch(()=>{})}catch(e){}}
+botSync();
 const isBot=n=>BOTI[n]!==undefined;
 // bots come and go: about 6 in 10 are online in any 10-minute stretch
 const botOn=n=>isBot(n)&&hsh(n+Math.floor(Date.now()/6e5))%10<6;
@@ -1757,9 +1764,9 @@ async function drawLb(){const P=$('lbP'),lo=lbRank*100,hi=lbRank===5?1e9:lo+100,
  const my=Math.round((S.rp||{})[lbMode]||0),want=lbMode+lbRank,real=await lbReal(field,lo,hi);if(lbMode+lbRank!==want||!$('lbL'))return;
  const rows=new Map();BOTS.forEach(b=>{const v=lbMode==='team'?b.rt:b.rf;if(v>=lo&&v<hi)rows.set(b.name,{name:b.name,rp:v,look:botLook(b)})});
  real.forEach(x=>{if(x.name&&!isBot(x.name))rows.set(x.name,x)});
- if(my>=lo&&my<hi)rows.set(me,{name:me,rp:my,look:partyLook(),me:1});
  const list=[...rows.values()].sort((a,b)=>b.rp-a.rp).slice(0,100);
- $('lbL').innerHTML=list.length?list.map((x,i)=>`<div class="lbr ${x.me||x.name===me?'me':''}"><i>${i+1}</i>${chipHtml(x.name,x.look,lookOf(chr(x.look.ch),x.look.sk))}<b>${x.rp} RP</b></div>`).join(''):'<div class="lbN">Nobody is in this rank yet.</div>'}
+ const meIn=list.findIndex(x=>FB.user&&x.uid===FB.user.uid||x.name===me);
+ $('lbL').innerHTML=(list.length?list.map((x,i)=>`<div class="lbr ${i===meIn?'me':''}"><i>${i+1}</i>${chipHtml(x.name,x.look,lookOf(chr(x.look.ch),x.look.sk))}<b>${x.rp} RP</b></div>`).join(''):'<div class="lbN">Nobody is in this rank yet.</div>')+(meIn<0?`<div class="lbN">${FB.user?'You have '+my+' RP. You show up in the rank that matches your points.':'You have '+my+' RP. Sign in with Google (start screen ⚙) to appear on the leaderboard.'}</div>`:'')}
 $('bLb').onclick=()=>{tick();lbRank=Math.min(5,Math.floor(((S.rp||{})[lbMode]||0)/100));$('lbM').classList.add('on');drawLb()};
 /* ---- friends and chat ---- */
 S.friends=S.friends||[];S.chats=S.chats||{};S.unread=S.unread||{};

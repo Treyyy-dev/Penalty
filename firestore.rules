@@ -25,6 +25,11 @@ service cloud.firestore {
     }
     // the dev key (stored scrambled) and what has been released to players
     match /config/dev { allow read, write: if isDev(); }
+    // the bot players, saved once from the studio so every phone has the same list
+    match /config/bots {
+      allow read: if true;
+      allow write: if isDev();
+    }
     match /config/release {
       allow read: if true;
       allow write: if isDev();
