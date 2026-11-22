@@ -293,7 +293,7 @@ h1,h2{font-family:'Creepster','Special Elite',serif;font-weight:400;margin:0;let
   <div class="hdr"><h2>SUMMON</h2><span class="soulsIn" id="gSouls"></span></div>
   <div id="gachaBody">
     <div id="banner"></div>
-    <div class="rates">Pull survivors, guns and melee weapons.<br>SSR 3% · SR 12% · R 30% · C 55%<br>Duplicates return 30 souls.</div>
+    <div class="rates">Pull survivors and guns.<br>SSR 3% · SR 12% · R 30% · C 55%<br>Duplicates return 30 souls.</div>
     <button class="mbtn" id="pull1">SUMMON ×1 — 100</button>
     <button class="mbtn alt" id="pull5">SUMMON ×5 — 450 (R+ guaranteed)</button>
   </div>
@@ -448,11 +448,12 @@ function card(c,opt={}){return `<div class="card ${c.r} ${opt.locked?'locked':''
 let S={souls:300,owned:{eli:1},active:'eli'};
 try{const t=JSON.parse(localStorage.getItem('marrowhouse')||'null');if(t&&t.owned)S=t}catch(e){}
 function save(){try{localStorage.setItem('marrowhouse',JSON.stringify(S))}catch(e){}}
-S.wp=S.wp||{};['pistol','rifle','knife'].forEach(k=>S.wp[k]=S.wp[k]||1);S.eq=S.eq||{g1:'pistol',g2:'rifle',m:'knife'};
+S.wp=S.wp||{};['pistol','rifle'].forEach(k=>S.wp[k]=S.wp[k]||1);S.eq=S.eq||{g1:'pistol',g2:'rifle'};
 const $=id=>document.getElementById(id);
+const fixEq=()=>{const ok=i=>i&&WP.some(w=>w.id===i)&&S.wp[i];if(!ok(S.eq.g1))S.eq.g1='pistol';if(!ok(S.eq.g2)||S.eq.g2===S.eq.g1)S.eq.g2=S.eq.g1==='rifle'?'pistol':(ok(S.eq.g2)&&S.eq.g2!==S.eq.g1?S.eq.g2:'rifle')};
 const chr=id=>CH.find(c=>c.id===id);
 function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===id));const tab=['menu','gacha','coll','settings'].includes(id);$('nav').style.display=tab?'flex':'none';document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('act',b.dataset.go===id));if(id==='settings')$('sSound').textContent=muted?'OFF':'ON';if(id==='menu')drawMenu();if(id==='gacha')drawGacha();if(id==='coll')drawColl()}
-function drawMenu(){$('mSouls').textContent='☠ '+S.souls+' souls';const c=chr(S.active);$('homeChar').innerHTML=`<svg viewBox="-4 0 208 792" xmlns="http://www.w3.org/2000/svg">${figIn(c,'ok',0)}</svg>`;$('homeName').innerHTML=c.n+'<small>'+loadTxt()+'</small>';document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('act',b.dataset.go==='menu'))}
+function drawMenu(){$('mSouls').textContent='☠ '+S.souls+' souls';const c=chr(S.active);$('homeChar').innerHTML=`<svg viewBox="-4 0 208 792" xmlns="http://www.w3.org/2000/svg">${figIn(c,'ok',0,false,{hand:S.eq.g1,back:S.eq.g2})}</svg>`;$('homeName').innerHTML=c.n+'<small>'+loadTxt()+'</small>';document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('act',b.dataset.go==='menu'))}
 document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{tick();show(b.dataset.go)});
 
 
@@ -467,7 +468,7 @@ $('pull1').onclick=()=>pull(1,100);$('pull5').onclick=()=>pull(5,450);
 
 /* ================= COLLECTION ================= */
 $('grid').onclick=e=>{const el=e.target.closest('.card');if(!el)return;if(el.dataset.w){showW(wpn(el.dataset.w));return}const c=chr(el.dataset.c),own=!!S.owned[c.id];tick();
-  $('detailP').innerHTML=(own?`<div class="duo">${card(c)}<svg class="idle" viewBox="-4 0 208 792" xmlns="http://www.w3.org/2000/svg">${figIn(c,'ok',0)}</svg></div>`:card(c,{locked:true}))+`<h2 style="font-size:26px;color:#ddd">${own?c.n:'???'}</h2><p>${RAR[c.r].n}</p><p>${own?c.bio:'Not yet summoned. Find them in the Gacha.'}</p>${own?`<p class="perk">${c.pd}</p>`:''}${own?`<button class="mbtn" id="dSel">${S.active===c.id?'SELECTED':'SELECT'}</button>`:''}<button class="mbtn alt" id="dClose">CLOSE</button>`;
+  $('detailP').innerHTML=(own?`<div class="duo">${card(c)}<svg class="idle" viewBox="-4 0 208 792" xmlns="http://www.w3.org/2000/svg">${figIn(c,'ok',0,false,{hand:S.eq.g1,back:S.eq.g2})}</svg></div>`:card(c,{locked:true}))+`<h2 style="font-size:26px;color:#ddd">${own?c.n:'???'}</h2><p>${RAR[c.r].n}</p><p>${own?c.bio:'Not yet summoned. Find them in the Gacha.'}</p>${own?`<p class="perk">${c.pd}</p>`:''}${own?`<button class="mbtn" id="dSel">${S.active===c.id?'SELECTED':'SELECT'}</button>`:''}<button class="mbtn alt" id="dClose">CLOSE</button>`;
   $('detail').classList.add('on');$('dClose').onclick=()=>$('detail').classList.remove('on');if(own)$('dSel').onclick=()=>{S.active=c.id;save();$('detail').classList.remove('on');drawColl()}};
 
 /* ================= WEAPONS ================= */
@@ -477,11 +478,7 @@ const WP=[
 {id:'smg',n:'SMG',t:'g',r:'R',dmg:1,mag:24,cd:.09,rl:1.8,long:1,d:'Very fast fire. Tap as quick as you can.'},
 {id:'shotgun',n:'Shotgun',t:'g',r:'SR',dmg:3,mag:5,cd:.7,rl:2.4,long:1,spread:1,d:'Blasts every zombie near where you tap.'},
 {id:'rifle',n:'Assault Rifle',t:'g',r:'SR',dmg:2,mag:20,cd:.13,rl:2,long:1,d:'Fast and strong. You start with one.'},
-{id:'sniper',n:'Sniper Rifle',t:'g',r:'SSR',dmg:9,mag:5,cd:.8,rl:2.2,long:1,pierce:1,d:'One shot, one kill — and it goes through the zombies behind.'},
-{id:'knife',n:'Knife',t:'m',r:'C',dmg:1,rng:1.3,cd:.45,d:'Quick stab when they get close. You start with one.'},
-{id:'bat',n:'Baseball Bat',t:'m',r:'R',dmg:2,rng:1.5,cd:.6,kb:.9,d:'Knocks them flying backward.'},
-{id:'machete',n:'Machete',t:'m',r:'SR',dmg:3,rng:1.5,cd:.5,d:'Cuts most zombies down in one swing.'},
-{id:'katana',n:'Katana',t:'m',r:'SSR',dmg:4,rng:1.9,cd:.45,arc:1,d:'Long reach. Cuts every zombie in front of you.'}];
+{id:'sniper',n:'Sniper Rifle',t:'g',r:'SSR',dmg:9,mag:5,cd:.8,rl:2.2,long:1,pierce:1,d:'One shot, one kill — and it goes through the zombies behind.'}];
 const wpn=id=>WP.find(w=>w.id===id);
 const WSHAPE={
 pistol:`<rect x="-62" y="-24" width="112" height="26" rx="4" fill="#3a3e46"/><rect x="-62" y="-24" width="112" height="8" fill="#555a64"/><path d="M-54,2 L-18,2 L-28,62 L-64,62Z" fill="#1d1f24"/><path d="M-14,2 q6,22 -10,26" stroke="#1d1f24" stroke-width="5" fill="none"/><rect x="42" y="-30" width="6" height="8" fill="#222"/>`,
@@ -495,19 +492,19 @@ bat:`<path d="M-96,-7 L-40,-9 L70,-17 C98,-18 98,18 70,17 L-40,9 L-96,7Z" fill="
 machete:`<path d="M-30,-14 L60,-20 C84,-20 100,-8 104,8 L-30,12Z" fill="#b9bec6" stroke="#444" stroke-width="2"/><path d="M-26,6 L98,6" stroke="#fff" opacity=".45" stroke-width="2"/><rect x="-36" y="-18" width="8" height="34" fill="#2a2d33"/><rect x="-90" y="-12" width="56" height="22" rx="7" fill="#3a2414"/><circle cx="-76" cy="-1" r="3" fill="#b9963c"/><circle cx="-52" cy="-1" r="3" fill="#b9963c"/>`,
 katana:`<path d="M-44,-4 C10,-14 70,-12 112,6 C70,0 10,2 -44,8Z" fill="#e6ebf2" stroke="#666" stroke-width="1.5"/><path d="M-40,3 C10,-6 70,-4 104,4" stroke="#9fb6d8" stroke-width="2" fill="none"/><ellipse cx="-48" cy="2" rx="6" ry="15" fill="#b9963c" stroke="#5a4310" stroke-width="2"/><rect x="-108" y="-5" width="58" height="14" rx="4" fill="#15171a"/><path d="M-100,-5 l8,14 M-88,-5 l8,14 M-76,-5 l8,14 M-64,-5 l8,14" stroke="#c9161b" stroke-width="3"/>`};
 function wArt(w){const u='w'+(uid++),R=RAR[w.r];return `<svg class="art" viewBox="0 0 200 260" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="${u}b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${R.c}"/><stop offset=".8" stop-color="#0c0c12"/></linearGradient><clipPath id="${u}c"><rect width="200" height="260" rx="10"/></clipPath></defs><g clip-path="url(#${u}c)"><rect width="200" height="260" fill="url(#${u}b)"/>${w.r==='SSR'?[0,1,2,3,4,5,6,7,8,9].map(i=>`<path d="M100,120 L${100+260*Math.cos(i*.628)},${120+260*Math.sin(i*.628)} L${100+260*Math.cos(i*.628+.16)},${120+260*Math.sin(i*.628+.16)}Z" fill="#fff3b0" opacity=".13"/>`).join(''):''}<circle cx="100" cy="118" r="78" fill="#000" opacity=".28"/><circle cx="100" cy="118" r="78" fill="none" stroke="#fff" stroke-opacity=".14" stroke-width="2"/><g transform="translate(100,120) rotate(-24) scale(.82)">${WSHAPE[w.id]}</g><text x="100" y="222" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="700" fill="#fff" opacity=".55" letter-spacing="3">${w.t==='g'?'GUN':'MELEE'}</text></g></svg>`}
-const eqTag=id=>S.eq.g1===id?'WEAPON 1':S.eq.g2===id?'WEAPON 2':S.eq.m===id?'MELEE':'';
-const loadTxt=()=>[S.eq.g1,S.eq.g2,S.eq.m].map(i=>i?wpn(i).n:'—').join(' · ');
+const eqTag=id=>S.eq.g1===id?'IN HAND':S.eq.g2===id?'ON BACK':'';
+const loadTxt=()=>[S.eq.g1,S.eq.g2].map(i=>i&&wpn(i)?wpn(i).n:'—').join(' · ');
 function wcard(w,opt={}){const e=opt.eq&&eqTag(w.id);return `<div class="card ${w.r} ${opt.locked?'locked':''} ${e?'sel':''}" data-w="${w.id}">${wArt(w)}<span class="tag">${w.r}</span>${opt.cnt>1?`<span class="cnt">×${opt.cnt}</span>`:''}${e?`<span class="selb">${e}</span>`:''}<span class="nm">${opt.locked?'???':w.n}</span></div>`}
 function equip(slot,id){if(slot==='m')S.eq.m=id;else{const o=slot==='g1'?'g2':'g1';if(S.eq[o]===id)S.eq[o]=S.eq[slot];S.eq[slot]=id;if(!S.eq.g1){S.eq.g1=S.eq.g2;S.eq.g2=null}}save()}
 function showW(w){const own=!!S.wp[w.id];tick();
  $('detailP').innerHTML=wcard(w,{locked:!own})+`<h2 style="font-size:26px;color:#ddd">${own?w.n:'???'}</h2><p>${RAR[w.r].n} · ${w.t==='g'?'Gun':'Melee'}</p><p>${own?w.d:'Not yet pulled. Find it in the Gacha.'}</p>${own?`<p class="perk">${w.t==='g'?`Damage ${w.dmg} · ${w.mag} rounds · ${w.cd<.15?'Very fast':w.cd<.3?'Fast':w.cd<.5?'Medium':'Slow'} fire`:`Damage ${w.dmg} · Reach ${w.rng} · Used automatically when a zombie is close`}</p>`:''}`+
-  (own?(w.t==='g'?`<button class="mbtn" id="e1">${S.eq.g1===w.id?'EQUIPPED AS WEAPON 1':'EQUIP AS WEAPON 1'}</button><button class="mbtn alt" id="e2">${S.eq.g2===w.id?'EQUIPPED AS WEAPON 2':'EQUIP AS WEAPON 2'}</button>`:`<button class="mbtn" id="em">${S.eq.m===w.id?'EQUIPPED':'EQUIP MELEE'}</button>`):'')+`<button class="mbtn alt" id="dClose">CLOSE</button>`;
+  (own?(w.t==='g'?`<button class="mbtn" id="e1">${S.eq.g1===w.id?'IN YOUR HAND':'EQUIP IN HAND'}</button><button class="mbtn alt" id="e2">${S.eq.g2===w.id?'ON YOUR BACK':'EQUIP ON BACK'}</button>`:`<button class="mbtn" id="em">${S.eq.m===w.id?'EQUIPPED':'EQUIP MELEE'}</button>`):'')+`<button class="mbtn alt" id="dClose">CLOSE</button>`;
  $('detail').classList.add('on');const done=()=>{$('detail').classList.remove('on');drawColl()};$('dClose').onclick=done;
  if(own){if(w.t==='g'){$('e1').onclick=()=>{equip('g1',w.id);done()};$('e2').onclick=()=>{equip('g2',w.id);done()}}else $('em').onclick=()=>{equip('m',w.id);done()}}}
 let ctab='s';
 function drawColl(){$('tabS').classList.toggle('on',ctab==='s');$('tabW').classList.toggle('on',ctab==='w');
  if(ctab==='s'){const own=CH.filter(c=>S.owned[c.id]).length;$('cCount').textContent=own+' / '+CH.length;$('grid').innerHTML=CH.map(c=>card(c,{locked:!S.owned[c.id],sel:S.active===c.id,cnt:S.owned[c.id]})).join('');const a=chr(S.active);$('selInfo').innerHTML=`Tap a survivor to see them in full and select them.<br>Playing as <b>${a.n}</b> — ${a.pd}`}
- else{const own=WP.filter(w=>S.wp[w.id]).length;$('cCount').textContent=own+' / '+WP.length;$('grid').innerHTML=WP.map(w=>wcard(w,{locked:!S.wp[w.id],eq:1,cnt:S.wp[w.id]})).join('');$('selInfo').innerHTML=`Tap a weapon to view and equip it — two guns and one melee.<br>Loadout: <b>${loadTxt()}</b>`}}
+ else{const own=WP.filter(w=>S.wp[w.id]).length;$('cCount').textContent=own+' / '+WP.length;$('grid').innerHTML=WP.map(w=>wcard(w,{locked:!S.wp[w.id],eq:1,cnt:S.wp[w.id]})).join('');$('selInfo').innerHTML=`Tap a gun to view and equip it — one in your hand, one on your back.<br>Loadout: <b>${loadTxt()}</b>`}}
 $('tabS').onclick=()=>{ctab='s';tick();drawColl()};$('tabW').onclick=()=>{ctab='w';tick();drawColl()};
 
 /* ================= AUDIO ================= */
@@ -533,7 +530,7 @@ function sfx(k){if(!AC||muted)return;const t=AC.currentTime,g=AC.createGain();g.
 function tick(){initAudio();sfx('tick')}
 function setMute(v){muted=v;S.muted=v;save();if(master)master.gain.value=v?0:.9;$('bMute').style.opacity=v?.4:1;$('sSound').textContent=v?'OFF':'ON'}
 $('bMute').onclick=()=>setMute(!muted);$('sSound').onclick=()=>{initAudio();setMute(!muted);sfx('tick')};
-{let arm=0;$('sReset').onclick=()=>{if(!arm){arm=1;$('sReset').textContent='TAP AGAIN';setTimeout(()=>{arm=0;$('sReset').textContent='RESET'},3000)}else{arm=0;S.souls=300;S.owned={eli:1};S.active='eli';S.wp={pistol:1,rifle:1,knife:1};S.eq={g1:'pistol',g2:'rifle',m:'knife'};save();$('sReset').textContent='DONE'}}}
+{let arm=0;$('sReset').onclick=()=>{if(!arm){arm=1;$('sReset').textContent='TAP AGAIN';setTimeout(()=>{arm=0;$('sReset').textContent='RESET'},3000)}else{arm=0;S.souls=300;S.owned={eli:1};S.active='eli';S.wp={pistol:1,rifle:1};S.eq={g1:'pistol',g2:'rifle'};save();$('sReset').textContent='DONE'}}}
 if(S.muted){muted=true;$('bMute').style.opacity=.4}
 
 /* ================= WORLD ================= */
@@ -593,8 +590,8 @@ function zSvg(v,pose){const sk=['#8fa88a','#9aa3ad','#a8a374'][v],sd=shade(sk,.7
  s+=`<g transform="translate(0,${-a})"><path d="M174,244 L138,238 L108,340 L138,358Z" fill="${sh}"/><path d="M148,318 L108,340 L138,358Z" fill="${sk}"/><circle cx="124" cy="356" r="18" fill="${sk}"/><path d="M112,368 l-4,14 M126,372 l0,14 M136,366 l4,14" stroke="${sd}" stroke-width="5" stroke-linecap="round"/></g>`;
  return s}
 const ZIMG=[0,1,2].map(v=>[0,1,2].map(p=>mkImg('-4 40 208 752',166,600,zSvg(v,p))));
-function figImg(c,state,pose,blink){return state==='down'?mkImg('0 -204 792 208',600,158,`<g transform="rotate(-90)">${figIn(c,'hurt')}</g>`):mkImg('-4 0 208 792',250,952,figIn(c,state,pose||0,blink))}
-function figIn(c,state,pose,blink){const sk=c.skin,fc=c.fc,fd=shade(fc,.68),ac=c.ac||'#c22',skirt=c.fit==='uniform',dress=c.fit==='dress',coat=c.fit==='coat';
+function figImg(c,state,pose,blink,load){return state==='down'?mkImg('0 -204 792 208',600,158,`<g transform="rotate(-90)">${figIn(c,'hurt',0,false,load)}</g>`):mkImg('-4 0 208 792',250,952,figIn(c,state,pose||0,blink,load))}
+function figIn(c,state,pose,blink,load){load=load||{hand:'pistol'};const hw=wpn(load.hand)||wpn('pistol'),bw=load.back&&wpn(load.back);const sk=c.skin,fc=c.fc,fd=shade(fc,.68),ac=c.ac||'#c22',skirt=c.fit==='uniform',dress=c.fit==='dress',coat=c.fit==='coat';
  const pants=coat?'#0c0c10':c.id==='ivy'?'#16161c':'#1f2536',sneak=['hoodie','jacket'].includes(c.fit);
  let s='<g><ellipse cx="100" cy="782" rx="78" ry="8" fill="#000" opacity=".4"/>';
  // legs (pose 1 lifts the left leg, pose 2 the right)
@@ -603,6 +600,7 @@ function figIn(c,state,pose,blink){const sk=c.skin,fc=c.fc,fd=shade(fc,.68),ac=c
   g+=L?`<path d="M50,782 L50,760 Q76,742 100,760 L100,782Z" fill="${sneak?'#ececec':'#0b0b0d'}"/>${sneak?`<path d="M50,776 H100" stroke="${ac}" stroke-width="5"/>`:''}`:`<path d="M100,782 L100,760 Q124,742 150,760 L150,782Z" fill="${sneak?'#ececec':'#0b0b0d'}"/>${sneak?`<path d="M100,776 H150" stroke="${ac}" stroke-width="5"/>`:''}`;
   const up=(pose===1&&L)||(pose===2&&!L);return `<g transform="${up?`translate(${L?-5:5},396) scale(1,.875) translate(0,-396)`:''}">${g}</g>`};
  s+=(pose===1?leg(false)+leg(true):leg(true)+leg(false));
+ if(bw)s+=bw.long?`<g transform="translate(108,312) rotate(-58) scale(1.95)">${WSHAPE[bw.id]}</g>`:`<g transform="translate(34,440) rotate(82) scale(.7)">${WSHAPE[bw.id]}</g>`;
  // torso below the portrait
  s+=`<path d="M28,246 L172,246 L148,408 L52,408Z" fill="${fc}"/><path d="M28,246 L50,246 L62,408 L52,408Z M172,246 L150,246 L138,408 L148,408Z" fill="${fd}" opacity=".7"/>`;
  const LOW={hoodie:`<path d="M66,318 H134 L142,378 H58Z" fill="${fd}"/><rect x="52" y="394" width="96" height="16" fill="${fd}"/>`,
@@ -611,13 +609,13 @@ function figIn(c,state,pose,blink){const sk=c.skin,fc=c.fc,fd=shade(fc,.68),ac=c
   sweater:`<path d="M46,286 Q100,302 154,286 M50,318 Q100,334 150,318 M54,350 Q100,366 146,350" stroke="${fd}" stroke-width="4" fill="none" opacity=".7"/><rect x="52" y="388" width="96" height="22" fill="${fd}"/>`,
   coat:`<path d="M30,250 L170,250 L178,610 L106,610 L100,440 L94,610 L22,610Z" fill="${fc}" stroke="#2a2a32" stroke-width="2"/><path d="M100,236 V440" stroke="#33333c" stroke-width="3"/><circle cx="100" cy="290" r="5" fill="${ac}"/><circle cx="100" cy="340" r="5" fill="${ac}"/><circle cx="100" cy="390" r="5" fill="${ac}"/>`,
   dress:`<path d="M52,396 H148 L178,640 H22Z" fill="${fc}"/><path d="M76,400 l-18,236 M100,400 V636 M124,400 l18,236" stroke="${fd}" stroke-width="3" opacity=".6"/><rect x="52" y="388" width="96" height="10" fill="${fd}"/>`};
- s+=LOW[c.fit];
+ s+=LOW[c.fit];if(bw&&bw.long)s+=`<path d="M62,250 L150,404" stroke="#15151a" stroke-width="10"/><rect x="98" y="312" width="16" height="12" fill="#8a8f98" transform="rotate(60 106 318)"/>`;
  // the exact portrait drawing: head, hair, face, shoulders
  s+=art(c,true,blink);
  // arms + hands, flashlight in the right hand; arms swing opposite the legs
  const aL=pose===2?'translate(0,250) scale(1,.86) translate(0,-250) rotate(5 40 250)':pose===1?'rotate(-4 40 250)':'',aR=pose===1?'translate(0,250) scale(1,.86) translate(0,-250) rotate(-5 160 250)':pose===2?'rotate(4 160 250)':'';
  s+=`<g class="armL" transform="${aL}"><path d="M22,240 C10,300 12,390 22,456 L54,456 C56,390 58,310 60,256Z" fill="${fd}"/><circle cx="38" cy="470" r="17" fill="${sk}"/></g>`;
- s+=`<g class="armR" transform="${aR}"><path d="M178,240 C190,300 188,390 178,456 L146,456 C144,390 142,310 140,256Z" fill="${fd}"/><path d="M150,476 h34 v18 h-14 v44 h-20Z" fill="#1b1b20" stroke="#000" stroke-width="2"/><circle cx="162" cy="470" r="17" fill="${sk}"/></g>`;
+ s+=`<g class="armR" transform="${aR}"><path d="M178,240 C190,300 188,390 178,456 L146,456 C144,390 142,310 140,256Z" fill="${fd}"/><g transform="translate(${hw.long?196:189},${hw.long?500:506}) rotate(90) scale(${hw.long?1.05:.9})">${WSHAPE[hw.id]}</g><circle cx="162" cy="470" r="17" fill="${sk}"/></g>`;
  if(state!=='ok')s+=`<path d="M70,290 l42,56 M112,286 l-36,62" stroke="#b01018" stroke-width="11" stroke-linecap="round"/><path d="M84,348 q8,36 0,64" stroke="#7a0b10" stroke-width="8" fill="none" stroke-linecap="round"/>`;
  return s+'</g>'}
 
@@ -670,12 +668,12 @@ function start(){initAudio();const c=chr(S.active),p=c.perk;GM=MAP.map(r=>r.spli
  const others=CH.filter(x=>x.id!==c.id).sort(()=>Math.random()-.5).slice(0,3),sp=[[14,11.5],[17,11.5],[15.5,10.3]];
  P={x:15.5,y:12,a:-Math.PI/2,ph:0,turn:0,mov:0,isP:true};
  G={down:false,bleed:0,revT:0,perk:p,max:3+(p.hp||0),hp:3+(p.hp||0),shield:p.shield?1:0,time:0,hour:0,over:false,ui:0,kills:0,rg:0,
-  guns:[S.eq.g1,S.eq.g2].filter(Boolean).map(id=>{const w=wpn(id),m=Math.round(w.mag*(p.mag?1.5:1));return{w,mag:m,max:m,reload:0}}),gi:0,melee:wpn(S.eq.m||'knife'),mcd:0,fcd:0,hid:null,seen:false,breath:0,bmax:15,hideCd:0,zs:[],zt:5,groan:6,
-  team:others.map((o,i)=>({c:o,x:sp[i][0],y:sp[i][1],state:'ok',hp:3,mode:'idle',t:1+i*1.5,ph:0,shoot:1+i*.4,rg:0,seed:i*1370,img:{ok:[0,1,2].map(q=>figImg(o,'ok',q)).concat(figImg(o,'ok',0,true)),hurt:[0,1,2].map(q=>figImg(o,'hurt',q)).concat(figImg(o,'hurt',0,true)),down:figImg(o,'down')}}))};
+  guns:[S.eq.g1,S.eq.g2].filter(Boolean).map(id=>{const w=wpn(id),m=Math.round(w.mag*(p.mag?1.5:1));return{w,mag:m,max:m,reload:0}}),gi:0,fcd:0,hid:null,seen:false,breath:0,bmax:15,hideCd:0,zs:[],zt:5,groan:6,
+  team:others.map((o,i)=>({c:o,x:sp[i][0],y:sp[i][1],state:'ok',hp:3,mode:'idle',t:1+i*1.5,ph:0,shoot:1+i*.4,rg:0,seed:i*1370,img:(ld=>({ok:[0,1,2].map(q=>figImg(o,'ok',q,false,ld)).concat(figImg(o,'ok',0,true,ld)),hurt:[0,1,2].map(q=>figImg(o,'hurt',q,false,ld)).concat(figImg(o,'hurt',0,true,ld)),down:figImg(o,'down',0,false,ld)}))({hand:'pistol',back:['rifle','shotgun','smg'][i]})}))};
  const row=(id,cls,ch,nm)=>`<div class="pr ${cls}" id="${id}"><div class="pa">${art(ch)}</div><div><div class="pn">${nm}</div><div class="ph"></div></div></div>`;
  $('party').innerHTML=row('pr0','me',c,'YOU')+G.team.map((t,i)=>row('pr'+(i+1),'',t.c,first(t).toUpperCase())).join('');
  drawHands(c);setGun();$('redv').classList.remove('on');$('hide').classList.remove('on');$('knock').classList.remove('on');paused=false;joy.x=joy.y=0;show('game');sizeCv();drawHud();
- say('Midnight. The dead are coming. Tap a zombie to shoot it — aim for the head. Up close you use your melee. Stay alive until 6 AM.')}
+ say('Midnight. The dead are coming. Tap a zombie to shoot it — aim for the head. Stay alive until 6 AM.')}
 function hurtFx(){sfx('bad');sfx('beat');const s=$('scare');s.innerHTML='';s.classList.add('on');$('pr0').classList.add('hurtfx');setTimeout(()=>{s.classList.remove('on');$('pr0').classList.remove('hurtfx')},350)}
 function hit(txt){if(G.over)return;if(G.shield){G.shield=0;sfx('banish');say('Your charm burns hot — the bite doesn\'t land. It won\'t work twice.');drawHud();return}
  if(G.perk.dodge&&Math.random()<.35){sfx('banish');say('You twist away — teeth snap shut on empty air.');return}
@@ -694,12 +692,10 @@ function killZ(z){z.dead=.6;G.kills++}
 function facing(e,lim){let d=Math.atan2(e.y-P.y,e.x-P.x)-P.a;d=Math.atan2(Math.sin(d),Math.cos(d));return Math.abs(d)<lim}
 function setGun(){const w=G.guns[G.gi].w,gs=document.getElementById('gunS'),gp=document.getElementById('gunP');if(gs&&gs.style){gs.style.display=w.long?'':'none';gp.style.display=w.long?'none':''}
  const b=$('swapB');b.style.visibility=G.guns.length>1?'visible':'hidden';if(G.guns.length>1)b.textContent='⇄ '+G.guns[1-G.gi].w.n.toUpperCase()}
-function swapGun(){if(!G||G.over||G.guns.length<2)return;G.gi=1-G.gi;G.fcd=.25;setGun();sfx('tick');say('Switched to '+G.guns[G.gi].w.n+'.')}
+function swapGun(){if(!G||G.over||G.guns.length<2)return;G.gi=1-G.gi;G.fcd=.25;setGun();sfx('tick');say(G.guns[G.gi].w.n+' in hand. '+G.guns[1-G.gi].w.n+' on your back.')}
 function hurtZ(z,dmg,kb){if(z.dead)return;z.fl=.15;z.hp-=dmg;if(z.hp<=0)killZ(z);else{const k=kb||.25,nx=z.x+Math.cos(P.a)*k,ny=z.y+Math.sin(P.a)*k;if(!solid(nx,ny)){z.x=nx;z.y=ny}}}
 function tapAt(e){if(!G||G.over||paused||G.hid||G.down)return;const r=cv.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*cv.width,y=(e.clientY-r.top)/r.height*cv.height;
- const under=G.zs.filter(z=>{const s=z.scr;return !z.dead&&s&&x>=s.x0-6&&x<=s.x1+6&&y>=s.top-6&&y<=s.bot+4}).sort((a,b)=>a.scr.ty-b.scr.ty),best=under[0],M=G.melee;
- if(best&&dist(best,P)<M.rng&&G.mcd<=0){G.mcd=M.cd;reach=2.2;sfx('slash');const sl=$('slash');sl.classList.remove('on');void sl.offsetWidth;sl.classList.add('on');
-  (M.arc?G.zs.filter(z=>!z.dead&&dist(z,P)<M.rng&&facing(z,1)):[best]).forEach(z=>hurtZ(z,M.dmg,M.kb));return}
+ const under=G.zs.filter(z=>{const s=z.scr;return !z.dead&&s&&x>=s.x0-6&&x<=s.x1+6&&y>=s.top-6&&y<=s.bot+4}).sort((a,b)=>a.scr.ty-b.scr.ty);
  const g=G.guns[G.gi],w=g.w;if(g.reload>0){say('Reloading...');return}if(G.fcd>0)return;
  g.mag--;G.fcd=w.cd;reach=1.5;sfx(w.cd>.4?'sgun':'gun');const f=$('flash');f.classList.remove('on');void f.offsetWidth;f.classList.add('on');const dm=w.dmg*(G.perk.dmg||1);
  if(w.spread)G.zs.forEach(z=>{const s=z.scr;if(z.dead||!s||s.ty>7)return;if(Math.abs((s.x0+s.x1)/2-x)<70+(s.x1-s.x0)/2)hurtZ(z,s.ty<3.5?dm:dm-1,.6)});
@@ -711,7 +707,7 @@ function update(dt){
  P.a+=tr*2.3*dt;const sp=(f>0?2.6:1.5)*f*(G.down?.22:1);
  if(sp){const dx=Math.cos(P.a)*sp*dt,dy=Math.sin(P.a)*sp*dt;if(!blocked(P.x+dx,P.y))P.x+=dx;if(!blocked(P.x,P.y+dy))P.y+=dy;P.ph+=dt*9*Math.abs(f)}
  P.turn=tr;P.mov=Math.abs(f);G.hideCd=Math.max(0,G.hideCd-dt);G.fcd=Math.max(0,G.fcd-dt);
- G.mcd=Math.max(0,G.mcd-dt);for(const g of G.guns)if(g.reload>0){g.reload-=dt;if(g.reload<=0){g.mag=g.max;sfx('tick')}}
+ for(const g of G.guns)if(g.reload>0){g.reload-=dt;if(g.reload<=0){g.mag=g.max;sfx('tick')}}
  if(G.hp<G.max&&!G.down){G.rg+=dt*(G.perk.regen||1);if(G.rg>=25){G.rg=0;G.hp++;drawHud();say('You catch your breath. One heart back.')}}
  if(G.hid){G.breath-=dt;$('breathI').style.width=Math.max(0,G.breath/G.bmax*100)+'%';if(G.breath<=0){leave();say('You can\'t hold your breath any longer. You stumble out.')}}
  if(G.down){G.bleed-=dt;$('bleedI').style.width=Math.max(0,G.bleed/40*100)+'%';if(G.bleed<=0||!G.team.some(t=>t.state!=='down')){G.down=false;end(false);return}}
@@ -801,7 +797,7 @@ $('bQuit').onclick=()=>{if(G)G.over=true;$('redv').classList.remove('on');$('hid
 (function(){try{const svg=art(chr('asher')).replace('class="art"','width="256" height="333"'),uri='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
  const l=document.createElement('link');l.rel='icon';l.href=uri;document.head.appendChild(l);$('gicon').innerHTML=art(chr('asher'));
  const im=new Image();im.onload=()=>{try{const c=document.createElement('canvas');c.width=c.height=180;c.getContext('2d').drawImage(im,0,10,256,256,0,0,180,180);const a=document.createElement('link');a.rel='apple-touch-icon';a.href=c.toDataURL('image/png');document.head.appendChild(a)}catch(e){}};im.src=uri}catch(e){}})();
-requestAnimationFrame(frame);
+fixEq();requestAnimationFrame(frame);
 drawMenu();
 </script>
 </body>
